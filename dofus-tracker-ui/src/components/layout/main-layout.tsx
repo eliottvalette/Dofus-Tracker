@@ -1,46 +1,62 @@
-"use client"
-
-import { useState } from "react"
-import { Sidebar } from "./sidebar"
-import { Navbar } from "./navbar"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Package, ShoppingCart, Home as HomeIcon, Settings, BarChart3, Users } from "lucide-react";
 
 interface MainLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar pour desktop */}
-      <div className="hidden md:block">
-        <Sidebar className="w-64" />
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Navbar */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/60">
+        <div className="flex h-16 items-center px-4">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-bold">Dofus Tracker</h1>
+          </div>
+          <div className="ml-auto flex items-center space-x-4">
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+          </div>
+        </div>
+      </nav>
 
-      {/* Sidebar mobile */}
-      <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-        <SheetTrigger asChild className="md:hidden">
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-4 w-4" />
-            <span className="sr-only">Menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
-          <Sidebar />
-        </SheetContent>
-      </Sheet>
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/60">
+          <div className="p-4">
+            <nav className="space-y-2">
+              <Button variant="ghost" className="w-full justify-start">
+                <HomeIcon className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <Package className="h-4 w-4 mr-2" />
+                Items
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Sales
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <Users className="h-4 w-4 mr-2" />
+                Community
+              </Button>
+            </nav>
+          </div>
+        </aside>
 
-      {/* Contenu principal */}
-      <div className="flex-1 flex flex-col">
-        <Navbar />
+        {/* Main Content */}
         <main className="flex-1 p-6">
           {children}
         </main>
       </div>
     </div>
-  )
+  );
 } 

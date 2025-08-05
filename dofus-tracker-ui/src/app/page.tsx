@@ -1,7 +1,7 @@
-import { MainLayout } from "@/components/layout/main-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Package, ShoppingCart, TrendingUp, DollarSign } from "lucide-react"
+import { MainLayout } from "@/components/layout/main-layout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Package, ShoppingCart, TrendingUp, DollarSign } from "lucide-react";
 
 export default function Home() {
   return (
@@ -10,11 +10,11 @@ export default function Home() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Vue d&apos;ensemble de vos activités de vente
+            Vue d&apos;ensemble de vos activités
           </p>
         </div>
 
-        {/* Statistiques */}
+        {/* Statistics Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -69,7 +69,7 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* Actions rapides */}
+        {/* Quick Actions */}
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -102,7 +102,7 @@ export default function Home() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center space-x-4">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-chart-1 rounded-full"></div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">Épée de l&apos;Iop vendue</p>
                     <p className="text-xs text-muted-foreground">Il y a 2 heures</p>
@@ -110,7 +110,7 @@ export default function Home() {
                   <p className="text-sm font-medium">150 k</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-chart-2 rounded-full"></div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">Bottes en cuir ajoutées</p>
                     <p className="text-xs text-muted-foreground">Il y a 4 heures</p>
@@ -121,7 +121,14 @@ export default function Home() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Empty space for future components */}
+        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+          <p className="text-muted-foreground">
+            Espace disponible pour vos composants personnalisés
+          </p>
+        </div>
       </div>
     </MainLayout>
-  )
+  );
 }

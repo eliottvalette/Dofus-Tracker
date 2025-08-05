@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dofus Tracker UI
 
-## Getting Started
+Un projet Next.js moderne avec shadcn/ui et Tailwind CSS pour créer une interface de suivi Dofus.
 
-First, run the development server:
+## 🚀 Technologies
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 15** - Framework React avec App Router
+- **TypeScript** - Support complet du typage
+- **Tailwind CSS v4** - Framework CSS utilitaire
+- **shadcn/ui** - Composants UI réutilisables
+- **Lucide React** - Icônes modernes
+- **ESLint** - Linting et formatage du code
+
+## 📁 Structure du projet
+
+```
+dofus-tracker-ui/
+├── src/
+│   ├── app/                 # Pages Next.js (App Router)
+│   ├── components/
+│   │   ├── ui/             # Composants shadcn/ui
+│   │   └── layout/         # Composants de layout
+│   └── lib/                # Utilitaires
+├── public/                 # Assets statiques
+└── components.json         # Configuration shadcn/ui
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🎨 Composants disponibles
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **MainLayout** - Layout principal avec sidebar et navbar
+- **Button** - Boutons avec différentes variantes
+- **Card** - Cartes pour organiser le contenu
+- **Input** - Champs de saisie
+- **Label** - Labels pour les formulaires
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Installation et développement
 
-## Learn More
+```bash
+# Installer les dépendances
+npm install
 
-To learn more about Next.js, take a look at the following resources:
+# Lancer le serveur de développement
+npm run dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Vérifier le linting
+npm run lint
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Build pour la production
+npm run build
+```
 
-## Deploy on Vercel
+## 🎯 Fonctionnalités
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- ✅ Layout responsive avec sidebar et navbar
+- ✅ Composants shadcn/ui intégrés
+- ✅ Design moderne et accessible
+- ✅ Support TypeScript complet
+- ✅ Configuration ESLint
+- ✅ Espace central pour vos composants personnalisés
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔧 Ajouter de nouveaux composants shadcn/ui
+
+```bash
+npx shadcn@latest add [component-name]
+```
+
+## 📝 Utilisation du MainLayout
+
+```tsx
+import { MainLayout } from "@/components/layout/main-layout";
+
+export default function MyPage() {
+  return (
+    <MainLayout>
+      {/* Votre contenu ici */}
+    </MainLayout>
+  );
+}
+```
+
+## 🎨 Personnalisation
+
+Le projet utilise les variables CSS de shadcn/ui pour la personnalisation des couleurs et du thème. Modifiez `src/app/globals.css` pour ajuster le design.
+
+## 📦 Scripts disponibles
+
+- `npm run dev` - Serveur de développement
+- `npm run build` - Build de production
+- `npm run start` - Serveur de production
+- `npm run lint` - Vérification du code
