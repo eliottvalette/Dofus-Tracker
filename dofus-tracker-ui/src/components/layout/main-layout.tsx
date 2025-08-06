@@ -79,61 +79,68 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 border-r bg-sidebar m-6 rounded-2xl">
-          <div className="flex flex-row items-center p-4">
-            <h1 className="text-xl font-bold">Dofus Tracker</h1>
-            <img src="logo_text.webp" alt="Dofus Tracker" className="w-13 h-13" />
-          </div>
-          <div className="p-4">
-            <nav className="space-y-2">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Button
-                    key={item.id}
-                    variant={activePage === item.id ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => handleNavigation(item.id, item.href)}
-                  >
-                    <Icon className="h-4 w-4 mr-2" />
-                    {item.name}
+        <aside className="w-64 border-r bg-sidebar m-6 rounded-2xl sticky top-6 h-[96vh]">
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="flex flex-row items-center p-4 border-b">
+              <h1 className="text-xl font-bold">Dofus Tracker</h1>
+              <img src="logo_text.webp" alt="Dofus Tracker" className="w-13 h-13" />
+            </div>
+            
+            {/* Navigation */}
+            <div className="flex-1 p-4 mt-4">
+              <nav className="space-y-4">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Button
+                      key={item.id}
+                      variant={activePage === item.id ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => handleNavigation(item.id, item.href)}
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      {item.name}
+                    </Button>
+                  );
+                })}
+              </nav>
+            </div>
+            
+            {/* User Menu */}
+            <div className="p-4 border-t">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <UserIcon className="h-4 w-4 mr-2" />
+                    {userName}
                   </Button>
-                );
-              })}
-            </nav>
-          </div>
-          <div className="ml-auto flex items-center p-4 mt-auto">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <UserIcon className="h-4 w-4 mr-2" />
-                  {userName}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {user ? (
-                  <>
-                    <DropdownMenuItem disabled>
-                      Connecté en tant que : {user.email}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {user ? (
+                    <>
+                      <DropdownMenuItem disabled>
+                        Connecté en tant que : {user.email}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={handleLogout} className="text-destructive">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Déconnexion
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <DropdownMenuItem onSelect={() => router.push('/login')}>
+                      Connexion
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={handleLogout} className="text-destructive">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Déconnexion
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem onSelect={() => router.push('/login')}>
-                    Connexion
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 mt-4">
           {children}
         </main>
       </div>
