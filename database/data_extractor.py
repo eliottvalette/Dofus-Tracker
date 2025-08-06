@@ -64,9 +64,9 @@ def process_category(category: str, num_pages: int):
     # Sauvegarde en CSV
     if all_data:
         df = pd.DataFrame(all_data)
-        df.columns = ["image_url", "nom", "type", "niveau"]
+        df.columns = ["original_image_url", "nom", "type", "niveau"]
         df["category"] = category
-        df = df[["category", "nom", "type", "niveau", "image_url"]]
+        df = df[["category", "nom", "type", "niveau", "original_image_url"]]
         
         csv_filename = f"database/data/{category}_data.csv"
         df.to_csv(csv_filename, index=False)

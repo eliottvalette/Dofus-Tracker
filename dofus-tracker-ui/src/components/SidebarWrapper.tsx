@@ -2,10 +2,8 @@
 import * as React from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
 import { usePathname } from "next/navigation";
-import { useSidebarContext } from "@/components/sidebar-context";
+import { MainLayout } from "@/components/layout/main-layout";
 
 interface SidebarWrapperProps {
   children: React.ReactNode;
@@ -14,16 +12,6 @@ interface SidebarWrapperProps {
 export function SidebarWrapper({ children }: SidebarWrapperProps) {
   const [authChecked, setAuthChecked] = React.useState(false);
   const pathname = usePathname();
-  const {
-    searchTerm,
-    setSearchTerm,
-    selectedCategories,
-    setSelectedCategories,
-    selectedItems,
-    setSelectedItems,
-    categories,
-    items
-  } = useSidebarContext();
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, () => {
@@ -34,33 +22,18 @@ export function SidebarWrapper({ children }: SidebarWrapperProps) {
 
   // While checking auth, render nothing or a loader if needed
   if (!authChecked) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   // Don't show sidebar on login page
   if (pathname === '/login') {
-    console.log("Login page");
     return <>{children}</>;
-  } else {
-    console.log("Not login page", pathname);
   }
 
-  // Always wrap children with sidebar layout
-  return (
-    <SidebarProvider>
-      <AppSidebar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        selectedCategories={selectedCategories}
-        setSelectedCategories={setSelectedCategories}
-        selectedItems={selectedItems}
-        setSelectedItems={setSelectedItems}
-        categories={categories}
-        items={items}
-      />
-      <SidebarInset>
-        {children}
-      </SidebarInset>
-    </SidebarProvider>
-  );
+  // Wrap children with MainLayout for authenticated pages
+  return <MainLayout>{children}</MainLayout>;
 } 

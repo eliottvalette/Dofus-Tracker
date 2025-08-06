@@ -1,11 +1,100 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { signOut, onAuthStateChanged, type User } from "firebase/auth";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart, Home as HomeIcon, Settings, BarChart3, Users } from "lucide-react";
+import { Package, ShoppingCart, Home as HomeIcon, Settings, BarChart3, Users, LogOut, User as UserIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [activePage, setActivePage] = useState("dashboard");
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u) {
+        const userRef = doc(db, "users", u.uid);
+        getDoc(userRef)
+          .then(snap => {
+            if (snap.exists()) {
+              const data = snap.data() as { userId: number };
+              setUserId(data.userId);
+            }
+          })
+          .catch(error => console.error("Failed to fetch userId:", error));
+      } else {
+        setUserId(null);
+        router.push('/login');
+      }
+    });
+    return unsubscribe;
+  }, [router]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.replace("/login");
+  };
+
+  const userName = user ? (user.displayName || (user.email ? user.email.split("@")[0] : "")) : "Guest";
+
+  const navigationItems = [
+    {
+      id: "dashboard",
+      name: "Dashboard",
+      icon: HomeIcon,
+      description: "Statistiques générales, meilleurs vendeurs, actualités, revenus...",
+      href: "/"
+    },
+    {
+      id: "items",
+      name: "Items",
+      icon: Package,
+      description: "Tableau de tous les items",
+      href: "/items"
+    },
+    {
+      id: "sales",
+      name: "Mes Ventes",
+      icon: ShoppingCart,
+      description: "Page où l'utilisateur met à jour ses ventes",
+      href: "/sales"
+    },
+    {
+      id: "stats",
+      name: "Statistiques",
+      icon: BarChart3,
+      description: "Statistiques détaillées sur les meilleurs vendeurs, revenus...",
+      href: "/stats"
+    },
+    {
+      id: "community",
+      name: "Communauté",
+      icon: Users,
+      description: "Espace où les utilisateurs peuvent contribuer au site",
+      href: "/community"
+    }
+  ];
+
+  const handleNavigation = (pageId: string, href: string) => {
+    setActivePage(pageId);
+    router.push(href);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
@@ -15,10 +104,32 @@ export function MainLayout({ children }: MainLayoutProps) {
             <h1 className="text-xl font-bold">Dofus Tracker</h1>
           </div>
           <div className="ml-auto flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <UserIcon className="h-4 w-4 mr-2" />
+                  {userName}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {user ? (
+                  <>
+                    <DropdownMenuItem disabled>
+                      Votre ID Unique : {userId ?? 0}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={handleLogout} className="text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Déconnexion
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onSelect={() => router.push('/login')}>
+                    Connexion
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </nav>
@@ -28,26 +139,20 @@ export function MainLayout({ children }: MainLayoutProps) {
         <aside className="w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/60">
           <div className="p-4">
             <nav className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start">
-                <HomeIcon className="h-4 w-4 mr-2" /> {/* Most interesting stats on users best sellers, news, revenues... */}
-                Dashboard
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Package className="h-4 w-4 mr-2" /> {/* Table of all items */}
-                Items
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <ShoppingCart className="h-4 w-4 mr-2" /> {/* Page where user updates his sales */}
-                Mes Ventes
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <BarChart3 className="h-4 w-4 mr-2" /> {/* Deep Stats on users best sellers, revenues... */}
-                Statistiques
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-2" /> {/* Place where users can contribute to the website. */}
-                Communauté
-              </Button>
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Button
+                    key={item.id}
+                    variant={activePage === item.id ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => handleNavigation(item.id, item.href)}
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {item.name}
+                  </Button>
+                );
+              })}
             </nav>
           </div>
         </aside>

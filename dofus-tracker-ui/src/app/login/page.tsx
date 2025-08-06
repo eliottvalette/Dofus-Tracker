@@ -3,16 +3,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/components/login-form";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const [isSignUp, setIsSignUp] = useState(false);
 
   const toggleMode = () => setIsSignUp(prev => !prev);
@@ -26,7 +25,7 @@ export default function LoginPage() {
       if (isSignUp) {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "users", cred.user.uid), {email: email, userId: cred.user.uid, AuthToSee: false });
-        toast({ title: "Account created successfully." });
+        toast.success("Account created successfully.");
       } else {
         const loginCred = await signInWithEmailAndPassword(auth, email, password);
         const userRef = doc(db, "users", loginCred.user.uid);
@@ -34,16 +33,12 @@ export default function LoginPage() {
         if (!userSnap.exists()) {
           await setDoc(userRef, {email: email, userId: loginCred.user.uid, AuthToSee: false });
         }
-        toast({ title: "Logged in successfully." });
+        toast.success("Logged in successfully.");
       }
       router.replace("/");
     } catch (err) {
       console.error(err);
-      toast({
-        title: "Authentication error",
-        description: err instanceof Error ? err.message : String(err),
-        variant: "destructive",
-      });
+      toast.error(`Authentication error: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -54,11 +49,7 @@ export default function LoginPage() {
       router.replace("/");
     } catch (err) {
       console.error(err);
-      toast({
-        title: "Google sign-in error",
-        description: err instanceof Error ? err.message : String(err),
-        variant: "destructive",
-      });
+      toast.error(`Google sign-in error: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
