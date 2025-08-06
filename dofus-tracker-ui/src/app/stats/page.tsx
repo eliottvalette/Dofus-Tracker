@@ -3,9 +3,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BarChart3, TrendingUp, TrendingDown, Package, Users, Activity, Loader2, Clock, Target, Zap } from "lucide-react";
+import { BarChart3, Package, Activity, Loader2, Clock, Target } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 
@@ -18,10 +18,10 @@ interface SaleItem {
   quantity: number;
   price: number;
   date: string;
-  createdAt: any; // Firebase timestamp
+  createdAt: Timestamp; // Firebase timestamp
   status: "pending" | "sold" | "local_sold";
   soldDate?: string;
-  soldAt?: any; // Firebase timestamp
+  soldAt?: Timestamp; // Firebase timestamp
 }
 
 interface StatsData {
@@ -203,7 +203,7 @@ export default function StatsPage() {
           const diffHours = Math.floor((now.getTime() - saleDate.getTime()) / (1000 * 60 * 60));
           
           let timeString = "";
-          if (diffHours < 1) timeString = "À l'instant";
+          if (diffHours < 1) timeString = "À l&apos;instant";
           else if (diffHours < 24) timeString = `Il y a ${diffHours}h`;
           else {
             const diffDays = Math.floor(diffHours / 24);
@@ -322,7 +322,7 @@ export default function StatsPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{stats.totalItems}</div>
                 <p className="text-xs text-muted-foreground">
-                  Nombre total d'items
+                  Nombre total d&apos;items
                 </p>
               </CardContent>
             </Card>
@@ -358,7 +358,7 @@ export default function StatsPage() {
               <CardHeader>
                 <CardTitle>Meilleures catégories</CardTitle>
                 <CardDescription>
-                  Nombre de ventes par catégorie d'items
+                  Nombre de ventes par catégorie d&apos;items
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -438,9 +438,9 @@ export default function StatsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Meilleurs types par catégorie</CardTitle>
-              <CardDescription>
-                Types d'items les plus vendus par catégorie
-              </CardDescription>
+                <CardDescription>
+                  Types d&apos;items les plus vendus par catégorie
+                </CardDescription>
             </CardHeader>
             <CardContent>
               {stats.topTypesByCategory.length > 0 ? (
@@ -580,7 +580,7 @@ export default function StatsPage() {
                   <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">Graphique en cours de développement</p>
                   <p className="text-sm text-muted-foreground">
-                    Intégration d'une bibliothèque de graphiques prévue
+                    Intégration d&apos;une bibliothèque de graphiques prévue
                   </p>
                 </div>
               </div>

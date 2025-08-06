@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { signOut, onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart, Home as HomeIcon, Settings, BarChart3, Users, LogOut, User as UserIcon } from "lucide-react";
+import { Package, ShoppingCart, BarChart3, Users, LogOut, User as UserIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -140,7 +140,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 mt-6 mb-2">
+        <main className="flex-1 mt-6 mb-2 mr-4">
           {children}
         </main>
       </div>

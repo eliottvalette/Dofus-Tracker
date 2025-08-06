@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, MessageSquare, Users, Heart, Send } from "lucide-react";
+import { Mail, MessageSquare, Users, Send } from "lucide-react";
 import { useState } from "react";
 
 export default function CommunityPage() {
@@ -72,7 +72,7 @@ export default function CommunityPage() {
 
             <div className="space-y-3 text-sm text-muted-foreground">
               <p>Nous étudions toutes les suggestions avec attention.</p>
-              <p>Merci de votre contribution à l'amélioration de Dofus Tracker !</p>
+              <p>Merci de votre contribution à l&apos;amélioration de Dofus Tracker !</p>
             </div>
           </div>
 

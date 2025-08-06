@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Filter, Grid, List, Heart, HeartOff } from "lucide-react";
+import { Search, Grid, List, Heart, HeartOff } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { collection, addDoc, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
@@ -20,15 +20,7 @@ interface Item {
   image_url: string;
 }
 
-interface FavoriteItem {
-  id: string;
-  itemName: string;
-  category: string;
-  type: string;
-  niveau: string;
-  image_url: string;
-  createdAt: any;
-}
+
 
 export default function ItemsPage() {
   const { user } = useAuth();
@@ -38,7 +30,7 @@ export default function ItemsPage() {
   const [favoriteItems, setFavoriteItems] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedType] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [favoriteFilter, setFavoriteFilter] = useState<"all" | "favorites" | "not-favorites">("all");
   const [loading, setLoading] = useState(true);
@@ -184,7 +176,7 @@ export default function ItemsPage() {
     }
   };
 
-  const filterItems = () => {
+  const filterItems = useCallback(() => {
     let filtered = allItems;
 
     if (selectedCategory) {
@@ -210,7 +202,7 @@ export default function ItemsPage() {
     }
 
     setFilteredItems(filtered);
-  };
+  }, [allItems, searchTerm, selectedCategory, selectedType, favoriteFilter, favoriteItems]);
 
   const loadMoreItems = () => {
     setItemsToShow(prev => prev + 100);

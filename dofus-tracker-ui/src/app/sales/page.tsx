@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, MoreHorizontal, Heart } from "lucide-react";
+import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, Heart } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 import {
@@ -27,10 +27,10 @@ interface SaleItem {
   quantity: number;
   price: number;
   date: string;
-  createdAt: any; // Firebase timestamp
+  createdAt: Timestamp; // Firebase timestamp
   status: "pending" | "sold" | "local_sold";
   soldDate?: string;
-  soldAt?: any; // Firebase timestamp
+  soldAt?: Timestamp; // Firebase timestamp
 }
 
 interface Item {
@@ -188,7 +188,7 @@ export default function SalesPage() {
         quantity: selectedLotSize,
         price: 0, // Prix à définir par l'utilisateur
         date: new Date().toISOString(),
-        createdAt: serverTimestamp(),
+        createdAt: Timestamp.now(),
         status: "pending",
       };
 
@@ -389,7 +389,7 @@ export default function SalesPage() {
                   <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">Aucun favori trouvé</p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Allez dans la page "Items" pour ajouter des favoris
+                    Allez dans la page &quot;Items&quot; pour ajouter des favoris
                   </p>
                 </div>
               ) : (
@@ -488,7 +488,7 @@ export default function SalesPage() {
                   <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">Aucune vente en cours</p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Allez dans &quot;Mise en vente&quot; pour ajouter des items
+                    Allez dans &ldquo;Mise en vente&rdquo; pour ajouter des items
                   </p>
                 </div>
               ) : (
