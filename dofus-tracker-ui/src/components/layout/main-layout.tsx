@@ -2,8 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signOut, onAuthStateChanged, type User } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Package, ShoppingCart, Home as HomeIcon, Settings, BarChart3, Users, LogOut, User as UserIcon } from "lucide-react";
 import {
@@ -21,24 +20,12 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [userId, setUserId] = useState<number | null>(null);
   const [activePage, setActivePage] = useState("dashboard");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
-      if (u) {
-        const userRef = doc(db, "users", u.uid);
-        getDoc(userRef)
-          .then(snap => {
-            if (snap.exists()) {
-              const data = snap.data() as { userId: number };
-              setUserId(data.userId);
-            }
-          })
-          .catch(error => console.error("Failed to fetch userId:", error));
-      } else {
-        setUserId(null);
+      if (!u) {
         router.push('/login');
       }
     });
@@ -57,8 +44,8 @@ export function MainLayout({ children }: MainLayoutProps) {
       id: "dashboard",
       name: "Dashboard",
       icon: HomeIcon,
-      description: "Statistiques générales, meilleurs vendeurs, actualités, revenus...",
-      href: "/"
+      description: "Votre espace personnel et vos objectifs",
+      href: "/dashboard"
     },
     {
       id: "items",
@@ -115,7 +102,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 {user ? (
                   <>
                     <DropdownMenuItem disabled>
-                      Votre ID Unique : {userId ?? 0}
+                      Connecté en tant que : {user.email}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={handleLogout} className="text-destructive">

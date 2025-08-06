@@ -1,14 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { toast } from "sonner";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "@/components/login-form";
 import { Toaster } from "@/components/ui/sonner";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,32 +23,67 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", cred.user.uid), {email: email, userId: cred.user.uid, AuthToSee: false });
-        toast.success("Account created successfully.");
+        // Créer un profil utilisateur simple sans afficher l'UID
+        await setDoc(doc(db, "users", cred.user.uid), {
+          email: email,
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        });
+        toast.success("Compte créé avec succès.");
       } else {
         const loginCred = await signInWithEmailAndPassword(auth, email, password);
         const userRef = doc(db, "users", loginCred.user.uid);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-          await setDoc(userRef, {email: email, userId: loginCred.user.uid, AuthToSee: false });
+          // Créer un profil pour un utilisateur existant
+          await setDoc(userRef, {
+            email: email,
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString()
+          });
+        } else {
+          // Mettre à jour la dernière connexion
+          await setDoc(userRef, {
+            ...userSnap.data(),
+            lastLogin: new Date().toISOString()
+          }, { merge: true });
         }
-        toast.success("Logged in successfully.");
+        toast.success("Connexion réussie.");
       }
       router.replace("/");
     } catch (err) {
       console.error(err);
-      toast.error(`Authentication error: ${err instanceof Error ? err.message : String(err)}`);
+      toast.error(`Erreur d'authentification: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      
+      // Créer ou mettre à jour le profil utilisateur
+      const userRef = doc(db, "users", result.user.uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: result.user.email,
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        });
+      } else {
+        await setDoc(userRef, {
+          ...userSnap.data(),
+          lastLogin: new Date().toISOString()
+        }, { merge: true });
+      }
+      
+      toast.success("Connexion Google réussie.");
       router.replace("/");
     } catch (err) {
       console.error(err);
-      toast.error(`Google sign-in error: ${err instanceof Error ? err.message : String(err)}`);
+      toast.error(`Erreur de connexion Google: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -57,12 +91,12 @@ export default function LoginPage() {
     <div className="min-h-screen bg-grid bg-[#111111] flex flex-col">
       <main className="flex flex-1 items-center justify-center px-4 flex-col">
         <span className="text-xl max-w-[26rem] w-full text-left mb-8 font-bold">Dofus Tracker</span>
-        <Card className="w-full max-w-[26rem] shadow-lg border-gray-200 dark:border-[#262626] bg-white/90 dark:bg-[#111111]/90 backdrop-blur-sm">
+        <Card className="w-full max-w-[26rem] shadow-lg border-[#262626] bg-[#111111]/90 backdrop-blur-sm">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-[#FAFAFA]">
+            <CardTitle className="text-2xl font-bold text-center text-[#FAFAFA]">
               {isSignUp ? "Sign Up" : "Login"}
             </CardTitle>
-            <CardDescription className="text-center text-gray-500 dark:text-gray-400">
+            <CardDescription className="text-center text-gray-400">
               {isSignUp ? "Create your account" : "Enter your credentials to access your account"}
             </CardDescription>
           </CardHeader>

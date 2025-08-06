@@ -23,11 +23,11 @@ export function LoginForm({
       <div className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" autoComplete="email" name="email" type="email" placeholder="m@example.com" className="rounded-[10px] border border-gray-200 dark:border-[#333333] bg-white dark:bg-[#1A1A1A]" required />
+          <Input id="email" autoComplete="email" name="email" type="email" placeholder="m@example.com" className="rounded-[10px] border border-[#333333] bg-[#1A1A1A]" required />
         </div>
         <div className="grid gap-2">
           <Label htmlFor="password">Mot de passe</Label>
-          <Input id="password" autoComplete="current-password" name="password" type="password" placeholder="********" className="rounded-[10px] border border-gray-200 dark:border-[#333333] bg-white dark:bg-[#1A1A1A]" required />
+          <Input id="password" autoComplete="current-password" name="password" type="password" placeholder="********" className="rounded-[10px] border border-[#333333] bg-[#1A1A1A]" required />
           {!isSignUp && (
           <a
             href="#"
@@ -38,20 +38,20 @@ export function LoginForm({
         )}
         </div>
         
-        <Button type="submit" className="w-full bg-gray-900 mt-2 hover:bg-black dark:bg-white dark:hover:bg-gray-200 dark:text-gray-900 text-white h-[40px]">
+        <Button type="submit" className="w-full mt-2 bg-white hover:bg-gray-200 text-gray-900 h-[40px]">
           {isSignUp ? "Sign Up" : "Login"}
         </Button>
         <div className="relative my-4 mt-[-3px]">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200 dark:border-[#333333]"></div>
+            <div className="w-full border-t border-[#333333]"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white dark:bg-[#111111] text-gray-500 dark:text-gray-400">Or continue with</span>
+            <span className="px-2 bg-[#111111] text-gray-400">Or continue with</span>
           </div>
         </div>
         <Button 
           variant="outline" 
-          className="w-full border-gray-200 mt-[-15px] dark:border-[#333333] dark:text-gray-200 dark:hover:bg-[#1A1A1A] h-[45px] text-md rounded-[10px] mb-1" 
+          className="w-full mt-[-15px] border-[#333333] text-gray-200 hover:bg-[#1A1A1A] h-[45px] text-md rounded-[10px] mb-1" 
           onClick={onGoogleSignIn}
         >
           <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -60,13 +60,13 @@ export function LoginForm({
           Google
         </Button>
       </div>
-      <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+      <div className="text-sm text-gray-400 text-center">
         {isSignUp ? (
           <>
             Vous avez déjà un compte ?{" "}
             <button
               type="button"
-              className="text-sm text-gray-700 dark:text-gray-200 font-medium hover:underline underline-offset-4"
+              className="text-sm text-gray-200 font-medium hover:underline underline-offset-4"
               onClick={onToggleMode}
             >
               Se connecter
@@ -77,7 +77,7 @@ export function LoginForm({
             Vous n&apos;avez pas de compte ?{" "}
             <button
               type="button"
-              className="text-sm text-gray-700 dark:text-gray-200 font-medium hover:underline underline-offset-4"
+              className="text-sm text-gray-200 font-medium hover:underline underline-offset-4"
               onClick={onToggleMode}
             >
               Créer un compte
