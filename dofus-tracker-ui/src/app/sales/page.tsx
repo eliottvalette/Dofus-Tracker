@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, MoreHorizontal } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { collection, addDoc, getDocs, doc, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 import {
@@ -25,8 +25,10 @@ interface SaleItem {
   quantity: number;
   price: number;
   date: string;
+  createdAt: any; // Firebase timestamp
   status: "pending" | "sold" | "local_sold";
   soldDate?: string;
+  soldAt?: any; // Firebase timestamp
 }
 
 interface Item {
@@ -146,6 +148,7 @@ export default function SalesPage() {
         quantity: selectedLotSize,
         price: 0, // Prix à définir par l'utilisateur
         date: new Date().toISOString(),
+        createdAt: serverTimestamp(),
         status: "pending",
       };
 
@@ -185,6 +188,7 @@ export default function SalesPage() {
           ...sale,
           status: "sold" as const,
           soldDate: new Date().toISOString(),
+          soldAt: serverTimestamp(),
         };
         
         await addDoc(collection(db, "users", user.uid, "sold"), saleData);
