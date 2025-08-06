@@ -29,24 +29,24 @@ export function MainLayout({ children }: MainLayoutProps) {
           <div className="p-4">
             <nav className="space-y-2">
               <Button variant="ghost" className="w-full justify-start">
-                <HomeIcon className="h-4 w-4 mr-2" />
+                <HomeIcon className="h-4 w-4 mr-2" /> {/* Most interesting stats on users best sellers, news, revenues... */}
                 Dashboard
               </Button>
               <Button variant="ghost" className="w-full justify-start">
-                <Package className="h-4 w-4 mr-2" />
+                <Package className="h-4 w-4 mr-2" /> {/* Table of all items */}
                 Items
               </Button>
               <Button variant="ghost" className="w-full justify-start">
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Sales
+                <ShoppingCart className="h-4 w-4 mr-2" /> {/* Page where user updates his sales */}
+                Mes Ventes
               </Button>
               <Button variant="ghost" className="w-full justify-start">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Analytics
+                <BarChart3 className="h-4 w-4 mr-2" /> {/* Deep Stats on users best sellers, revenues... */}
+                Statistiques
               </Button>
               <Button variant="ghost" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-2" />
-                Community
+                <Users className="h-4 w-4 mr-2" /> {/* Place where users can contribute to the website. */}
+                Communauté
               </Button>
             </nav>
           </div>
