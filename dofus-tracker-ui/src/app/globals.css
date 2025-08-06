@@ -152,4 +152,24 @@
       linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
     background-size: 100px 100px;
   }
+  
+
+  
+  .floating-notification {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    animation: floatUp 1s ease-out forwards;
+  }
+  
+  @keyframes floatUp {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+  }
 }

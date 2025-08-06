@@ -87,8 +87,9 @@ export function MainLayout({ children }: MainLayoutProps) {
       {/* Navbar */}
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/60">
         <div className="flex h-16 items-center px-4">
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-row items-center space-x-4">
             <h1 className="text-xl font-bold">Dofus Tracker</h1>
+            <img src="logo_text.webp" alt="Dofus Tracker" className="w-13 h-13" />
           </div>
           <div className="ml-auto flex items-center space-x-4">
             <DropdownMenu>

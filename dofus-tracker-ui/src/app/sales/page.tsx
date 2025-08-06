@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Package, DollarSign, TrendingUp, ShoppingCart, CheckCircle, XCircle } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
@@ -39,8 +39,13 @@ export default function SalesPage() {
   const [selectedLotSize, setSelectedLotSize] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [itemsLoading, setItemsLoading] = useState(true);
-  const [flashingItem, setFlashingItem] = useState<string | null>(null);
-  const [cursorAnimation, setCursorAnimation] = useState<{x: number, y: number, text: string} | null>(null);
+
+  const [floatingNotifications, setFloatingNotifications] = useState<Array<{
+    id: string;
+    x: number;
+    y: number;
+    text: string;
+  }>>([]);
 
   const lotSizes = [1, 10, 100];
 
@@ -100,8 +105,24 @@ export default function SalesPage() {
     }
   };
 
-  const addToSales = async (item: Item) => {
+  const addToSales = async (item: Item, event: React.MouseEvent, index: number) => {
     if (!user) return;
+
+    // Créer une notification flottante
+    const notificationId = Date.now().toString();
+    const newNotification = {
+      id: notificationId,
+      x: event.clientX,
+      y: event.clientY,
+      text: `+${selectedLotSize}`,
+    };
+    
+    setFloatingNotifications(prev => [...prev, newNotification]);
+    
+    // Supprimer la notification après l'animation
+    setTimeout(() => {
+      setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
+    }, 1000);
 
     try {
       const newSale: Omit<SaleItem, 'id'> = {
@@ -114,7 +135,10 @@ export default function SalesPage() {
         userId: user.uid,
       };
 
-      await addDoc(collection(db, "sales"), newSale);
+      const docRef = await addDoc(collection(db, "sales"), newSale);
+      
+
+      
       await loadSales(); // Recharger les ventes
     } catch (error) {
       console.error("Erreur lors de l'ajout de la vente:", error);
@@ -207,19 +231,7 @@ export default function SalesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenus totaux</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalRevenue.toLocaleString()} kamas</div>
-            <p className="text-xs text-muted-foreground">
-              Ventes complétées
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ventes en attente</CardTitle>
@@ -228,7 +240,7 @@ export default function SalesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{pendingSales}</div>
             <p className="text-xs text-muted-foreground">
-              Items en cours de vente
+              Items mis en vente
             </p>
           </CardContent>
         </Card>
@@ -294,12 +306,12 @@ export default function SalesPage() {
                     {allItems.slice(0, 200).map((item, index) => (
                       <Card 
                         key={index} 
-                        className="hover:shadow-lg transition-all cursor-pointer"
-                        onClick={() => addToSales(item)}
+                        className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
+                        onClick={(e) => addToSales(item, e, index)}
                       >
-                        <CardContent className="p-4">
+                        <CardContent className="p-4 select-none">
                           <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
                               {item.image_url ? (
                                 <img 
                                   src={item.image_url} 
@@ -316,7 +328,7 @@ export default function SalesPage() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{item.nom}</p>
                               <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge variant="secondary" className="text-xs border border-popover">
                                   {item.type}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
@@ -360,42 +372,60 @@ export default function SalesPage() {
                 </div>
               ) : (
                 <ScrollArea className="h-[500px]">
-                  <div className="space-y-2">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {sales.map((sale) => (
-                      <Card key={sale.id} className="hover:shadow-lg transition-all">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4 flex-1">
-                              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                                {sale.itemImage ? (
-                                  <img 
-                                    src={sale.itemImage} 
-                                    alt={sale.itemName}
-                                    className="w-10 h-10 object-contain"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
-                                )}
+                      <Card 
+                        key={sale.id} 
+                        className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
+                        onClick={(e) => {
+                          if (sale.status === "pending" && sale.price && sale.price > 0) {
+                            markAsSold(sale.id);
+                            // Créer une notification flottante "Vendu !"
+                            const notificationId = Date.now().toString();
+                            const newNotification = {
+                              id: notificationId,
+                              x: e.clientX,
+                              y: e.clientY,
+                              text: "Vendu !",
+                            };
+                            setFloatingNotifications(prev => [...prev, newNotification]);
+                            setTimeout(() => {
+                              setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
+                            }, 1000);
+                          }
+                        }}
+                      >
+                        <CardContent className="p-4 select-none">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                              {sale.itemImage ? (
+                                <img 
+                                  src={sale.itemImage} 
+                                  alt={sale.itemName}
+                                  className="w-10 h-10 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-sm font-medium truncate">{sale.itemName}</p>
+                                <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
                               </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="font-medium">{sale.itemName}</p>
-                                  <Badge variant="outline">x{sale.quantity}</Badge>
-                                  <Badge className={getStatusColor(sale.status)}>
-                                    {getStatusText(sale.status)}
-                                  </Badge>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  Ajouté le {new Date(sale.date).toLocaleDateString()}
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge className={getStatusColor(sale.status)}>
+                                  {getStatusText(sale.status)}
+                                </Badge>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(sale.date).toLocaleDateString()}
                                 </p>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-2">
                               {sale.status === "pending" && (
-                                <>
+                                <div className="flex items-center gap-2">
                                   <Input
                                     type="number"
                                     placeholder="Prix"
@@ -404,31 +434,58 @@ export default function SalesPage() {
                                       const newPrice = parseInt(e.target.value) || 0;
                                       updateSalePrice(sale.id, newPrice);
                                     }}
-                                    className="w-20"
+                                    className="w-16 h-7 text-xs"
                                   />
                                   <Button
                                     size="sm"
-                                    onClick={() => markAsSold(sale.id)}
+                                    className="h-7 px-2"
+                                    onClick={(e) => {
+                                      markAsSold(sale.id);
+                                      // Créer une notification flottante "Vendu !"
+                                      const notificationId = Date.now().toString();
+                                      const newNotification = {
+                                        id: notificationId,
+                                        x: e.clientX,
+                                        y: e.clientY,
+                                        text: "Vendu !",
+                                      };
+                                      setFloatingNotifications(prev => [...prev, newNotification]);
+                                      setTimeout(() => {
+                                        setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
+                                      }, 1000);
+                                    }}
                                     disabled={!sale.price || sale.price <= 0}
                                   >
-                                    <CheckCircle className="h-4 w-4" />
+                                    <CheckCircle className="h-3 w-3" />
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
+                                    className="h-7 px-2"
                                     onClick={() => cancelSale(sale.id)}
                                   >
-                                    <XCircle className="h-4 w-4" />
+                                    <XCircle className="h-3 w-3" />
                                   </Button>
-                                </>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2"
+                                    onClick={() => deleteSale(sale.id)}
+                                  >
+                                    <span className="text-xs">×</span>
+                                  </Button>
+                                </div>
                               )}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => deleteSale(sale.id)}
-                              >
-                                Supprimer
-                              </Button>
+                              {sale.status !== "pending" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-2"
+                                  onClick={() => deleteSale(sale.id)}
+                                >
+                                  <span className="text-xs">×</span>
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </CardContent>
@@ -439,8 +496,24 @@ export default function SalesPage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-} 
+                 </TabsContent>
+       </Tabs>
+       
+       {/* Notifications flottantes */}
+       {floatingNotifications.map((notification) => (
+         <div
+           key={notification.id}
+           className="floating-notification"
+           style={{
+             left: notification.x,
+             top: notification.y,
+           }}
+         >
+           <div className="bg-primary text-accent-foreground px-2 py-1 rounded-md text-lg font-medium">
+             {notification.text}
+           </div>
+         </div>
+       ))}
+     </div>
+   );
+ } 
