@@ -20,11 +20,13 @@ interface Item {
 export default function ItemsPage() {
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
+  const [displayedItems, setDisplayedItems] = useState<Item[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
+  const [itemsToShow, setItemsToShow] = useState(100);
 
   const categories = [
     { id: "armes", name: "Armes" },
@@ -40,6 +42,11 @@ export default function ItemsPage() {
   useEffect(() => {
     filterItems();
   }, [allItems, searchTerm, selectedCategory, selectedType]);
+
+  useEffect(() => {
+    // Mettre à jour les items affichés quand les items filtrés changent
+    setDisplayedItems(filteredItems.slice(0, itemsToShow));
+  }, [filteredItems, itemsToShow]);
 
   const loadAllItems = async () => {
     setLoading(true);
@@ -83,8 +90,13 @@ export default function ItemsPage() {
       filtered = filtered.filter(item => item.type === selectedType);
     }
 
-    // Limiter à 100 items maximum
-    setFilteredItems(filtered.slice(0, 100));
+    setFilteredItems(filtered);
+    // Réinitialiser le nombre d'items à afficher quand on change les filtres
+    setItemsToShow(100);
+  };
+
+  const loadMoreItems = () => {
+    setItemsToShow(prev => prev + 100);
   };
 
   const getUniqueTypes = () => {
@@ -214,79 +226,94 @@ export default function ItemsPage() {
               <p className="text-muted-foreground mt-2">Chargement...</p>
             </div>
           ) : (
-            <ScrollArea className="h-[600px]">
-              {viewMode === "grid" ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {filteredItems.map((item, index) => (
-                    <Card key={index} className="hover:shadow-lg transition-all cursor-pointer">
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                            {item.image_url ? (
-                              <img 
-                                src={item.image_url} 
-                                alt={item.nom}
-                                className="w-10 h-10 object-contain"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{item.nom}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="secondary" className="text-xs">
-                                {item.type}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                {item.niveau}
-                              </Badge>
+            <>
+              <ScrollArea className="h-[600px]">
+                {viewMode === "grid" ? (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {displayedItems.map((item, index) => (
+                      <Card key={index} className="hover:shadow-lg transition-all cursor-pointer">
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                              {item.image_url ? (
+                                <img 
+                                  src={item.image_url} 
+                                  alt={item.nom}
+                                  className="w-10 h-10 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{item.nom}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {item.type}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {item.niveau}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {filteredItems.map((item, index) => (
-                    <Card key={index} className="hover:shadow-lg transition-all cursor-pointer">
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                            {item.image_url ? (
-                              <img 
-                                src={item.image_url} 
-                                alt={item.nom}
-                                className="w-10 h-10 object-contain"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
-                            )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {displayedItems.map((item, index) => (
+                      <Card key={index} className="hover:shadow-lg transition-all cursor-pointer">
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                              {item.image_url ? (
+                                <img 
+                                  src={item.image_url} 
+                                  alt={item.nom}
+                                  className="w-10 h-10 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium">{item.nom}</p>
+                              <p className="text-sm text-muted-foreground">{item.type}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">{item.type}</Badge>
+                              <Badge variant="outline">{item.niveau}</Badge>
+                              <Badge variant="outline">{item.category}</Badge>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium">{item.nom}</p>
-                            <p className="text-sm text-muted-foreground">{item.type}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary">{item.type}</Badge>
-                            <Badge variant="outline">{item.niveau}</Badge>
-                            <Badge variant="outline">{item.category}</Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+              
+              {/* Load More Button */}
+              {displayedItems.length < filteredItems.length && (
+                <div className="flex justify-center mt-6">
+                  <Button 
+                    onClick={loadMoreItems}
+                    variant="outline"
+                    className="w-full max-w-xs"
+                  >
+                    Voir {Math.min(100, filteredItems.length - displayedItems.length)} items supplémentaires
+                  </Button>
                 </div>
               )}
-            </ScrollArea>
+            </>
           )}
         </CardContent>
       </Card>
