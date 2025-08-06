@@ -5,11 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check } from "lucide-react";
+import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, MoreHorizontal } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { collection, addDoc, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 
 interface SaleItem {
   id: string;
@@ -237,9 +244,9 @@ export default function SalesPage() {
 
   const getStatusText = (status: SaleItem["status"]) => {
     switch (status) {
-      case "pending": return "En attente";
+      case "pending": return "En Vente";
       case "sold": return "Vendu";
-      case "local_sold": return "Vendu (local)";
+      case "local_sold": return "Vendu (à valider)";
       default: return "Inconnu";
     }
   };
@@ -266,7 +273,7 @@ export default function SalesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ventes en attente</CardTitle>
@@ -276,18 +283,6 @@ export default function SalesPage() {
             <div className="text-2xl font-bold">{pendingSales}</div>
             <p className="text-xs text-muted-foreground">
               Items mis en vente
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendus (local)</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{localSoldCount}</div>
-            <p className="text-xs text-muted-foreground">
-              En attente de validation
             </p>
           </CardContent>
         </Card>
@@ -356,7 +351,7 @@ export default function SalesPage() {
                         className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
                         onClick={(e) => addToSales(item, e)}
                       >
-                        <CardContent className="p-4 select-none">
+                        <CardContent className="px-4 select-none">
                           <div className="flex items-center space-x-3">
                             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
                               {item.image_url ? (
@@ -451,48 +446,6 @@ export default function SalesPage() {
                           className="hover:shadow-lg hover:bg-accent transition-all cursor-pointer border-primary/20"
                           onClick={() => toggleLocalSold(sale.id)}
                         >
-                          <CardContent className="p-4 select-none">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border">
-                                {sale.itemImage ? (
-                                  <img 
-                                    src={sale.itemImage} 
-                                    alt={sale.itemName}
-                                    className="w-10 h-10 object-contain"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <p className="text-sm font-medium truncate">{sale.itemName}</p>
-                                  <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
-                                </div>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Badge className={getStatusColor(sale.status)}>
-                                    {getStatusText(sale.status)}
-                                  </Badge>
-                                  <p className="text-xs text-muted-foreground">
-                                    {new Date(sale.date).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                      
-                      {/* Ventes en cours */}
-                      {sales.filter(sale => sale.status === "pending").map((sale) => (
-                        <Card 
-                          key={sale.id} 
-                          className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
-                          onClick={() => toggleLocalSold(sale.id)}
-                        >
                           <CardContent className="px-4 select-none">
                             <div className="flex items-center space-x-3">
                               <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border">
@@ -518,25 +471,72 @@ export default function SalesPage() {
                                   <Badge className={getStatusColor(sale.status)}>
                                     {getStatusText(sale.status)}
                                   </Badge>
-                                  <p className="text-xs text-muted-foreground">
-                                    {new Date(sale.date).toLocaleDateString()}
-                                  </p>
                                 </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 px-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    cancelSale(sale.id);
-                                  }}
-                                >
-                                  <XCircle className="h-3 w-3" />
-                                </Button>
                               </div>
                             </div>
                           </CardContent>
                         </Card>
+                      ))}
+                      
+                      {/* Ventes en cours */}
+                      {sales.filter(sale => sale.status === "pending").map((sale) => (
+                        <ContextMenu key={sale.id}>
+                          <ContextMenuTrigger>
+                            <Card 
+                              className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
+                              onClick={() => toggleLocalSold(sale.id)}
+                            >
+                              <CardContent className="px-4 select-none">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border">
+                                    {sale.itemImage ? (
+                                      <img 
+                                        src={sale.itemImage} 
+                                        alt={sale.itemName}
+                                        className="w-10 h-10 object-contain"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none';
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <p className="text-sm font-medium truncate">{sale.itemName}</p>
+                                      <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
+                                    </div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Badge className={getStatusColor(sale.status)}>
+                                        {getStatusText(sale.status)}
+                                      </Badge>
+                                      <p className="text-xs text-muted-foreground">
+                                        {new Date(sale.date).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </ContextMenuTrigger>
+                          <ContextMenuContent>
+                            <ContextMenuItem onClick={() => toggleLocalSold(sale.id)}>
+                              Marquer comme vendu
+                            </ContextMenuItem>
+                            <ContextMenuSeparator />
+                                                         <ContextMenuItem 
+                               onClick={(e: React.MouseEvent) => {
+                                 e.stopPropagation();
+                                 cancelSale(sale.id);
+                               }}
+                               className="text-destructive focus:text-destructive"
+                             >
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Annuler la vente
+                            </ContextMenuItem>
+                          </ContextMenuContent>
+                        </ContextMenu>
                       ))}
                     </div>
                   </ScrollArea>
@@ -575,7 +575,7 @@ export default function SalesPage() {
                         key={sale.id} 
                         className="hover:shadow-lg hover:bg-secondary transition-all"
                       >
-                        <CardContent className="p-4 select-none">
+                        <CardContent className="px-4 select-none">
                           <div className="flex items-center space-x-3">
                             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border">
                               {sale.itemImage ? (
