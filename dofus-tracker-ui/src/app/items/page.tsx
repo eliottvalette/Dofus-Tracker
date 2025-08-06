@@ -64,7 +64,14 @@ export default function ItemsPage() {
           return { category, nom, type, niveau, web_image_url, image_url};
         });
       
-      setAllItems(parsedItems);
+      // Trier les items par niveau croissant
+      const sortedItems = parsedItems.sort((a, b) => {
+        const niveauA = parseInt(a.niveau.replace('Niv. ', '')) || 0;
+        const niveauB = parseInt(b.niveau.replace('Niv. ', '')) || 0;
+        return niveauA - niveauB;
+      });
+      
+      setAllItems(sortedItems);
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
     } finally {
@@ -232,7 +239,7 @@ export default function ItemsPage() {
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {displayedItems.map((item, index) => (
                       <Card key={index} className="hover:shadow-lg transition-all cursor-pointer">
-                        <CardContent className="p-4">
+                        <CardContent className="px-4">
                           <div className="flex items-center space-x-3">
                             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
                               {item.image_url ? (
@@ -299,20 +306,18 @@ export default function ItemsPage() {
                     ))}
                   </div>
                 )}
+                {/* Load More Button */}
+                {displayedItems.length < filteredItems.length && (
+                  <div className="flex justify-center mt-6">
+                    <Button 
+                      onClick={loadMoreItems}
+                      className="w-full max-w-xs"
+                    >
+                      Voir {Math.min(100, filteredItems.length - displayedItems.length)} items supplémentaires
+                    </Button>
+                  </div>
+                )}
               </ScrollArea>
-              
-              {/* Load More Button */}
-              {displayedItems.length < filteredItems.length && (
-                <div className="flex justify-center mt-6">
-                  <Button 
-                    onClick={loadMoreItems}
-                    variant="outline"
-                    className="w-full max-w-xs"
-                  >
-                    Voir {Math.min(100, filteredItems.length - displayedItems.length)} items supplémentaires
-                  </Button>
-                </div>
-              )}
             </>
           )}
         </CardContent>
