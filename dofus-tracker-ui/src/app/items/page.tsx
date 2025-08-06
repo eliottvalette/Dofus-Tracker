@@ -265,14 +265,14 @@ export default function ItemsPage() {
 
           {/* View Mode and Favorite Filter */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+            {!isMobile && <div className="flex items-center gap-2">
               <Button
                 variant={viewMode === "grid" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("grid")}
               >
                 <Grid className="h-4 w-4 mr-2" />
-                {!isMobile && "Grille"}
+                Grille
               </Button>
               <Button
                 variant={viewMode === "list" ? "default" : "outline"}
@@ -280,33 +280,46 @@ export default function ItemsPage() {
                 onClick={() => setViewMode("list")}
               >
                 <List className="h-4 w-4 mr-2" />
-                {!isMobile && "Liste"}
+                Liste
               </Button>
             </div>
+            }
 
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant={favoriteFilter === "all" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFavoriteFilter("all")}
+                className={isMobile ? "min-w-[60px]" : ""}
+                title={isMobile ? "Afficher tous les items" : ""}
               >
-                Tous
+                Tout
               </Button>
               <Button
                 variant={favoriteFilter === "favorites" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFavoriteFilter("favorites")}
+                className={isMobile ? "min-w-[60px]" : ""}
+                title={isMobile ? "Afficher seulement les favoris" : ""}
               >
-                <Heart className="h-4 w-4 mr-2" />
+                <Heart className={`h-4 w-4 ${isMobile ? "" : "mr-2"}`} />
                 {!isMobile && "Favoris"}
+                {isMobile && (
+                  <span className="ml-1 text-xs">Que les Fav</span>
+                )}
               </Button>
               <Button
                 variant={favoriteFilter === "not-favorites" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setFavoriteFilter("not-favorites")}
+                className={isMobile ? "min-w-[60px]" : ""}
+                title={isMobile ? "Afficher seulement les non-favoris" : ""}
               >
-                <HeartOff className="h-4 w-4 mr-2" />
+                <HeartOff className={`h-4 w-4 ${isMobile ? "" : "mr-2"}`} />
                 {!isMobile && "Non favoris"}
+                {isMobile && (
+                  <span className="ml-1 text-xs">Non Favs</span>
+                )}
               </Button>
             </div>
           </div>
@@ -318,7 +331,7 @@ export default function ItemsPage() {
               className="cursor-pointer"
               onClick={() => setSelectedCategory("")}
             >
-              Toutes
+              {isMobile ? "Toutes" : "Toutes"}
             </Badge>
             {categories.map((category) => (
               <Badge 
