@@ -65,15 +65,27 @@ def process_category(category: str, num_pages: int):
     if all_data:
         df = pd.DataFrame(all_data)
         df.columns = ["image_url", "nom", "type", "niveau"]
-        df = df[["nom", "type", "niveau", "image_url"]]
+        df["category"] = category
+        df = df[["category", "nom", "type", "niveau", "image_url"]]
         
         csv_filename = f"database/data/{category}_data.csv"
         df.to_csv(csv_filename, index=False)
         print(f"💾 Données sauvegardées: {csv_filename} ({len(all_data)} éléments)")
 
+def merge_data():
+    armes_df = pd.read_csv('database/data/armes_data.csv')
+    consommables_df = pd.read_csv('database/data/consommables_data.csv')
+    equipements_df = pd.read_csv('database/data/equipements_data.csv')
+    ressources_df = pd.read_csv('database/data/ressources_data.csv')
+
+    merged_df = pd.concat([armes_df, consommables_df, equipements_df, ressources_df])
+    merged_df.to_csv('database/data/merged.csv', index=False)
+
 if __name__ == "__main__":
     for category, num_pages in CATEGORIES_MAP.items():
         print(f"\n🔄 Extraction de {category} ({num_pages} pages)...")
         process_category(category, num_pages)
+
+    merge_data()
 
 
