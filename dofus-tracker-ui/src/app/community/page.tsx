@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, MessageSquare, Users, Send } from "lucide-react";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function CommunityPage() {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleContactSupport = () => {
     window.location.href = "mailto:dofus.tracker.contact@gmail.com";
@@ -29,9 +31,9 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Communauté</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Communauté</h1>
         <p className="text-muted-foreground">
           Proposez des améliorations pour Dofus Tracker
         </p>
@@ -40,17 +42,17 @@ export default function CommunityPage() {
       {/* Contact Card */}
       <Card>
         <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <MessageSquare className="h-8 w-8 text-primary" />
+          <div className="mx-auto w-12 h-12 md:w-16 md:h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <MessageSquare className="h-6 w-6 md:h-8 md:w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Proposez des améliorations</CardTitle>
+          <CardTitle className="text-xl md:text-2xl">Proposez des améliorations</CardTitle>
           <CardDescription>
             Partagez vos idées pour améliorer Dofus Tracker
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-center space-y-6">
+        <CardContent className="text-center space-y-4 md:space-y-6">
           <div className="space-y-4">
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm md:text-base">
               Vous avez des idées pour améliorer Dofus Tracker ? 
               Partagez vos suggestions avec nous !
             </p>
@@ -61,31 +63,39 @@ export default function CommunityPage() {
                 placeholder="Décrivez votre idée d'amélioration..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="min-h-[120px]"
+                className="min-h-[100px] md:min-h-[120px]"
               />
             </div>
 
-            <div className="bg-muted/50 rounded-lg p-4">
-              <p className="font-medium mb-2">Email de contact :</p>
-              <p className="text-primary font-mono text-lg">dofus.tracker.contact@gmail.com</p>
+            <div className="bg-muted/50 rounded-lg p-3 md:p-4">
+              <p className="font-medium mb-2 text-sm md:text-base">Email de contact :</p>
+              <p className="text-primary font-mono text-sm md:text-lg break-all">
+                dofus.tracker.contact@gmail.com
+              </p>
             </div>
 
-            <div className="space-y-3 text-sm text-muted-foreground">
+            <div className="space-y-2 md:space-y-3 text-xs md:text-sm text-muted-foreground">
               <p>Nous étudions toutes les suggestions avec attention.</p>
               <p>Merci de votre contribution à l&apos;amélioration de Dofus Tracker !</p>
             </div>
           </div>
 
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <Button 
               onClick={handleSendMessage} 
-              size="lg" 
+              size={isMobile ? "default" : "lg"}
               disabled={!message.trim() || isSending}
+              className="w-full sm:w-auto"
             >
               <Send className="h-4 w-4 mr-2" />
               {isSending ? "Envoi..." : "Envoyer la suggestion"}
             </Button>
-            <Button onClick={handleContactSupport} variant="outline" size="lg">
+            <Button 
+              onClick={handleContactSupport} 
+              variant="outline" 
+              size={isMobile ? "default" : "lg"}
+              className="w-full sm:w-auto"
+            >
               <Mail className="h-4 w-4 mr-2" />
               Email direct
             </Button>
