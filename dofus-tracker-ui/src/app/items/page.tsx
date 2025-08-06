@@ -13,6 +13,7 @@ interface Item {
   nom: string;
   type: string;
   niveau: string;
+  web_image_url: string;
   image_url: string;
 }
 
@@ -43,17 +44,17 @@ export default function ItemsPage() {
   const loadAllItems = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/data/merged.csv');
+      const response = await fetch('/data/merged_with_local_images.csv');
       const csvText = await response.text();
       const lines = csvText.split('\n').slice(1);
       
       const parsedItems: Item[] = lines
         .filter(line => line.trim())
         .map(line => {
-          const [category, nom, type, niveau, image_url] = line.split(',').map(field => 
+          const [category, nom, type, niveau, web_image_url, image_url] = line.split(',').map(field => 
             field.replace(/^"|"$/g, '')
           );
-          return { category, nom, type, niveau, image_url };
+          return { category, nom, type, niveau, web_image_url, image_url};
         });
       
       setAllItems(parsedItems);
