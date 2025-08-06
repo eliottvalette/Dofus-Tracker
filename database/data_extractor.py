@@ -12,17 +12,33 @@ CATEGORIES_MAP = {
 os.makedirs("database/data", exist_ok=True)
 
 def extract_table_data(html_content: str) -> list:
-    """Extrait les données des tables HTML"""
+    """Extrait les données des tables HTML avec les URLs des images"""
     soup = BeautifulSoup(html_content, 'html.parser')
     tables = soup.find_all('table', class_='ak-table')
     
     data = []
     for table in tables:
-        rows = table.find_all('tr')
+        rows = table.find_all('tr') # "table row"
         for row in rows[1:]:  # Skip header
-            cells = row.find_all(['td', 'th'])
+            cells = row.find_all(['td', 'th']) # "table data" or "table header"
             if cells:
-                row_data = [cell.get_text(strip=True) for cell in cells]
+                # Extrait le texte de chaque cellule (en sautant la première qui contient l'image et la colonne vide)
+                row_data = []
+                for i, cell in enumerate(cells[1:], 1):
+                    text = cell.get_text(strip=True)
+                    # Ignore les cellules vides
+                    if text:
+                        row_data.append(text)
+                
+                # Cherche l'image dans la première cellule
+                img = cells[0].find('img')
+                if img and img.get('src'):
+                    # Ajoute l'URL de l'image au début
+                    row_data.insert(0, img['src'])
+                else:
+                    # Pas d'image trouvée
+                    row_data.insert(0, "")
+                
                 data.append(row_data)
     
     return data
@@ -48,8 +64,11 @@ def process_category(category: str, num_pages: int):
     # Sauvegarde en CSV
     if all_data:
         df = pd.DataFrame(all_data)
+        df.columns = ["image_url", "nom", "type", "niveau"]
+        df = df[["nom", "type", "niveau", "image_url"]]
+        
         csv_filename = f"database/data/{category}_data.csv"
-        df.to_csv(csv_filename, index=False, header=False)
+        df.to_csv(csv_filename, index=False)
         print(f"💾 Données sauvegardées: {csv_filename} ({len(all_data)} éléments)")
 
 if __name__ == "__main__":
