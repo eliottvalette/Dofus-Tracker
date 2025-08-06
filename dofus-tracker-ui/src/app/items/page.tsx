@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { collection, addDoc, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Item {
   category: string;
@@ -20,10 +21,9 @@ interface Item {
   image_url: string;
 }
 
-
-
 export default function ItemsPage() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [displayedItems, setDisplayedItems] = useState<Item[]>([]);
@@ -225,7 +225,7 @@ export default function ItemsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Floating Notifications */}
       {floatingNotifications.map((notification) => (
         <div
@@ -245,8 +245,8 @@ export default function ItemsPage() {
 
       {/* Search and Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle>Recherche et filtres</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg md:text-xl">Recherche et filtres</CardTitle>
           <CardDescription>
             Trouvez rapidement vos items préférés
           </CardDescription>
@@ -264,7 +264,7 @@ export default function ItemsPage() {
           </div>
 
           {/* View Mode and Favorite Filter */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Button
                 variant={viewMode === "grid" ? "default" : "outline"}
@@ -272,7 +272,7 @@ export default function ItemsPage() {
                 onClick={() => setViewMode("grid")}
               >
                 <Grid className="h-4 w-4 mr-2" />
-                Grille
+                {!isMobile && "Grille"}
               </Button>
               <Button
                 variant={viewMode === "list" ? "default" : "outline"}
@@ -280,11 +280,11 @@ export default function ItemsPage() {
                 onClick={() => setViewMode("list")}
               >
                 <List className="h-4 w-4 mr-2" />
-                Liste
+                {!isMobile && "Liste"}
               </Button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant={favoriteFilter === "all" ? "default" : "outline"}
                 size="sm"
@@ -298,7 +298,7 @@ export default function ItemsPage() {
                 onClick={() => setFavoriteFilter("favorites")}
               >
                 <Heart className="h-4 w-4 mr-2" />
-                Favoris
+                {!isMobile && "Favoris"}
               </Button>
               <Button
                 variant={favoriteFilter === "not-favorites" ? "default" : "outline"}
@@ -306,7 +306,7 @@ export default function ItemsPage() {
                 onClick={() => setFavoriteFilter("not-favorites")}
               >
                 <HeartOff className="h-4 w-4 mr-2" />
-                Non favoris
+                {!isMobile && "Non favoris"}
               </Button>
             </div>
           </div>
@@ -318,7 +318,7 @@ export default function ItemsPage() {
               className="cursor-pointer"
               onClick={() => setSelectedCategory("")}
             >
-              Toutes les catégories
+              Toutes
             </Badge>
             {categories.map((category) => (
               <Badge 
@@ -336,9 +336,9 @@ export default function ItemsPage() {
 
       {/* Results */}
       <Card>
-        <CardHeader>
-          <CardTitle>Résultats ({filteredItems.length} items)</CardTitle>
-          <CardDescription>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg md:text-xl">Résultats ({filteredItems.length} items)</CardTitle>
+          <CardDescription className="text-sm">
             {selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.name} - ` : ""}
             {selectedType ? `${selectedType} - ` : ""}
             {searchTerm ? `Recherche: "${searchTerm}"` : "Tous les items"}
@@ -353,34 +353,34 @@ export default function ItemsPage() {
             </div>
           ) : (
             <>
-              <ScrollArea className="h-[600px]">
+              <ScrollArea className="h-[500px] md:h-[600px]">
                 {viewMode === "grid" ? (
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {displayedItems.map((item, index) => (
                       <Card 
                         key={index} 
                         className="hover:shadow-lg transition-all cursor-pointer relative group"
                         onClick={(e) => toggleFavorite(item, e)}
                       >
-                        <CardContent className="px-4">
+                        <CardContent className="px-3 py-3 md:px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                               {item.image_url ? (
                                 <img 
                                   src={item.image_url} 
                                   alt={item.nom}
-                                  className="w-10 h-10 object-contain"
+                                  className="w-8 h-8 md:w-10 md:h-10 object-contain"
                                   onError={(e) => {
                                     e.currentTarget.style.display = 'none';
                                   }}
                                 />
                               ) : (
-                                <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-muted-foreground/20 rounded" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{item.nom}</p>
-                              <div className="flex items-center gap-2 mt-1">
+                              <div className="flex items-center gap-1 mt-1">
                                 <Badge variant="secondary" className="text-xs">
                                   {item.type}
                                 </Badge>
@@ -408,30 +408,38 @@ export default function ItemsPage() {
                         className="hover:shadow-lg transition-all cursor-pointer relative group"
                         onClick={(e) => toggleFavorite(item, e)}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                        <CardContent className="p-3 md:p-4">
+                          <div className="flex items-center space-x-3 md:space-x-4">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                               {item.image_url ? (
                                 <img 
                                   src={item.image_url} 
                                   alt={item.nom}
-                                  className="w-10 h-10 object-contain"
+                                  className="w-8 h-8 md:w-10 md:h-10 object-contain"
                                   onError={(e) => {
                                     e.currentTarget.style.display = 'none';
                                   }}
                                 />
                               ) : (
-                                <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-muted-foreground/20 rounded" />
                               )}
                             </div>
-                            <div className="flex-1">
-                              <p className="font-medium">{item.nom}</p>
-                              <p className="text-sm text-muted-foreground">{item.type}</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm md:text-base">{item.nom}</p>
+                              <p className="text-xs md:text-sm text-muted-foreground">{item.type}</p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary">{item.type}</Badge>
-                              <Badge variant="outline">{item.niveau}</Badge>
-                              <Badge variant="outline">{item.category}</Badge>
+                            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+                              <Badge variant="secondary" className="text-xs">
+                                {item.type}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {item.niveau}
+                              </Badge>
+                              {!isMobile && (
+                                <Badge variant="outline" className="text-xs">
+                                  {item.category}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </CardContent>
