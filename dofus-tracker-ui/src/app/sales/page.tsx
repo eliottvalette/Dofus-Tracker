@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Package, DollarSign, TrendingUp, ShoppingCart, CheckCircle, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, getDoc, doc, deleteDoc, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 
@@ -19,8 +19,8 @@ interface SaleItem {
   quantity: number;
   price: number;
   date: string;
-  status: "pending" | "sold" | "cancelled";
-  userId: string;
+  status: "pending" | "sold";
+  soldDate?: string;
 }
 
 interface Item {
@@ -61,19 +61,26 @@ export default function SalesPage() {
     
     setLoading(true);
     try {
-      const salesRef = collection(db, "sales");
-      const q = query(
-        salesRef,
-        where("userId", "==", user.uid)
-      );
-      const querySnapshot = await getDocs(q);
-      const salesData: SaleItem[] = [];
-      querySnapshot.forEach((doc) => {
-        salesData.push({ id: doc.id, ...doc.data() } as SaleItem);
+      // Charger les ventes en cours (selling)
+      const sellingRef = collection(db, "users", user.uid, "selling");
+      const sellingSnapshot = await getDocs(sellingRef);
+      const sellingData: SaleItem[] = [];
+      sellingSnapshot.forEach((doc) => {
+        sellingData.push({ id: doc.id, ...doc.data() } as SaleItem);
       });
-      // Trier côté client pour éviter le besoin d'index composite
-      salesData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setSales(salesData);
+
+      // Charger les ventes complétées (sold)
+      const soldRef = collection(db, "users", user.uid, "sold");
+      const soldSnapshot = await getDocs(soldRef);
+      const soldData: SaleItem[] = [];
+      soldSnapshot.forEach((doc) => {
+        soldData.push({ id: doc.id, ...doc.data() } as SaleItem);
+      });
+
+      // Combiner et trier toutes les ventes
+      const allSales = [...sellingData, ...soldData];
+      allSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setSales(allSales);
     } catch (error) {
       console.error("Erreur lors du chargement des ventes:", error);
     } finally {
@@ -132,12 +139,9 @@ export default function SalesPage() {
         price: 0, // Prix à définir par l'utilisateur
         date: new Date().toISOString(),
         status: "pending",
-        userId: user.uid,
       };
 
-      const docRef = await addDoc(collection(db, "sales"), newSale);
-      
-
+      const docRef = await addDoc(collection(db, "users", user.uid, "selling"), newSale);
       
       await loadSales(); // Recharger les ventes
     } catch (error) {
@@ -147,9 +151,25 @@ export default function SalesPage() {
 
   const markAsSold = async (saleId: string) => {
     try {
-      const saleRef = doc(db, "sales", saleId);
-      await updateDoc(saleRef, { status: "sold" });
-      await loadSales(); // Recharger les ventes
+      // Récupérer la vente depuis selling
+      const sellingRef = doc(db, "users", user!.uid, "selling", saleId);
+      const saleDoc = await getDoc(sellingRef);
+      
+      if (saleDoc.exists()) {
+        const saleData = saleDoc.data() as SaleItem;
+        
+        // Ajouter à la collection sold
+        await addDoc(collection(db, "users", user!.uid, "sold"), {
+          ...saleData,
+          status: "sold",
+          soldDate: new Date().toISOString(),
+        });
+        
+        // Supprimer de la collection selling
+        await deleteDoc(sellingRef);
+        
+        await loadSales(); // Recharger les ventes
+      }
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error);
     }
@@ -157,36 +177,13 @@ export default function SalesPage() {
 
   const cancelSale = async (saleId: string) => {
     try {
-      const saleRef = doc(db, "sales", saleId);
-      await updateDoc(saleRef, { status: "cancelled" });
+      const saleRef = doc(db, "users", user!.uid, "selling", saleId);
+      await deleteDoc(saleRef);
       await loadSales(); // Recharger les ventes
     } catch (error) {
       console.error("Erreur lors de l'annulation:", error);
     }
   };
-
-  const deleteSale = async (saleId: string) => {
-    try {
-      await deleteDoc(doc(db, "sales", saleId));
-      await loadSales(); // Recharger les ventes
-    } catch (error) {
-      console.error("Erreur lors de la suppression:", error);
-    }
-  };
-
-  const updateSalePrice = async (saleId: string, newPrice: number) => {
-    try {
-      const saleRef = doc(db, "sales", saleId);
-      await updateDoc(saleRef, { price: newPrice });
-      await loadSales(); // Recharger les ventes
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du prix:", error);
-    }
-  };
-
-  const totalRevenue = sales
-    .filter(sale => sale.status === "sold")
-    .reduce((sum, sale) => sum + (sale.price * sale.quantity), 0);
 
   const pendingSales = sales.filter(sale => sale.status === "pending").length;
   const soldItems = sales.filter(sale => sale.status === "sold").length;
@@ -195,7 +192,6 @@ export default function SalesPage() {
     switch (status) {
       case "pending": return "bg-yellow-500";
       case "sold": return "bg-green-500";
-      case "cancelled": return "bg-red-500";
       default: return "bg-gray-500";
     }
   };
@@ -204,7 +200,6 @@ export default function SalesPage() {
     switch (status) {
       case "pending": return "En attente";
       case "sold": return "Vendu";
-      case "cancelled": return "Annulé";
       default: return "Inconnu";
     }
   };
@@ -347,13 +342,14 @@ export default function SalesPage() {
           </Card>
         </TabsContent>
 
-        {/* Ventes */}
+                {/* Ventes */}
         <TabsContent value="ventes" className="space-y-6">
+          {/* Ventes en cours */}
           <Card>
             <CardHeader>
-              <CardTitle>Mes ventes ({sales.length})</CardTitle>
+              <CardTitle>Ventes en cours ({pendingSales})</CardTitle>
               <CardDescription>
-                Gérez vos ventes en cours et complétées
+                Cliquez sur une carte pour la vendre
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -362,38 +358,117 @@ export default function SalesPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   <p className="text-muted-foreground mt-2">Chargement...</p>
                 </div>
-              ) : sales.length === 0 ? (
+              ) : pendingSales === 0 ? (
                 <div className="text-center py-8">
                   <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Aucune vente enregistrée</p>
+                  <p className="text-muted-foreground">Aucune vente en cours</p>
                   <p className="text-sm text-muted-foreground mt-2">
                     Allez dans "Mise en vente" pour ajouter des items
                   </p>
                 </div>
               ) : (
-                <ScrollArea className="h-[500px]">
+                <ScrollArea className="h-[300px]">
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {sales.map((sale) => (
+                    {sales.filter(sale => sale.status === "pending").map((sale) => (
                       <Card 
                         key={sale.id} 
                         className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
                         onClick={(e) => {
-                          if (sale.status === "pending" && sale.price && sale.price > 0) {
-                            markAsSold(sale.id);
-                            // Créer une notification flottante "Vendu !"
-                            const notificationId = Date.now().toString();
-                            const newNotification = {
-                              id: notificationId,
-                              x: e.clientX,
-                              y: e.clientY,
-                              text: "Vendu !",
-                            };
-                            setFloatingNotifications(prev => [...prev, newNotification]);
-                            setTimeout(() => {
-                              setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
-                            }, 1000);
-                          }
+                          markAsSold(sale.id);
+                          // Créer une notification flottante "Vendu !"
+                          const notificationId = Date.now().toString();
+                          const newNotification = {
+                            id: notificationId,
+                            x: e.clientX,
+                            y: e.clientY,
+                            text: "Vendu !",
+                          };
+                          setFloatingNotifications(prev => [...prev, newNotification]);
+                          setTimeout(() => {
+                            setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
+                          }, 1000);
                         }}
+                      >
+                        <CardContent className="px-4 select-none">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                              {sale.itemImage ? (
+                                <img 
+                                  src={sale.itemImage} 
+                                  alt={sale.itemName}
+                                  className="w-10 h-10 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-sm font-medium truncate">{sale.itemName}</p>
+                                <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
+                              </div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge className={getStatusColor(sale.status)}>
+                                  {getStatusText(sale.status)}
+                                </Badge>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(sale.date).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  cancelSale(sale.id);
+                                }}
+                              >
+                                <XCircle className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ventes vendues */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Ventes vendues ({soldItems})</CardTitle>
+              <CardDescription>
+                Historique de vos ventes complétées
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-muted-foreground mt-2">Chargement...</p>
+                </div>
+              ) : soldItems === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune vente vendue</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Vendez des items pour voir votre historique
+                  </p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[300px]">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {sales.filter(sale => sale.status === "sold").map((sale) => (
+                      <Card 
+                        key={sale.id} 
+                        className="hover:shadow-lg hover:bg-secondary transition-all"
                       >
                         <CardContent className="p-4 select-none">
                           <div className="flex items-center space-x-3">
@@ -424,67 +499,10 @@ export default function SalesPage() {
                                   {new Date(sale.date).toLocaleDateString()}
                                 </p>
                               </div>
-                              {sale.status === "pending" && (
-                                <div className="flex items-center gap-2">
-                                  <Input
-                                    type="number"
-                                    placeholder="Prix"
-                                    value={sale.price || ""}
-                                    onChange={(e) => {
-                                      const newPrice = parseInt(e.target.value) || 0;
-                                      updateSalePrice(sale.id, newPrice);
-                                    }}
-                                    className="w-16 h-7 text-xs"
-                                  />
-                                  <Button
-                                    size="sm"
-                                    className="h-7 px-2"
-                                    onClick={(e) => {
-                                      markAsSold(sale.id);
-                                      // Créer une notification flottante "Vendu !"
-                                      const notificationId = Date.now().toString();
-                                      const newNotification = {
-                                        id: notificationId,
-                                        x: e.clientX,
-                                        y: e.clientY,
-                                        text: "Vendu !",
-                                      };
-                                      setFloatingNotifications(prev => [...prev, newNotification]);
-                                      setTimeout(() => {
-                                        setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
-                                      }, 1000);
-                                    }}
-                                    disabled={!sale.price || sale.price <= 0}
-                                  >
-                                    <CheckCircle className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 px-2"
-                                    onClick={() => cancelSale(sale.id)}
-                                  >
-                                    <XCircle className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 px-2"
-                                    onClick={() => deleteSale(sale.id)}
-                                  >
-                                    <span className="text-xs">×</span>
-                                  </Button>
-                                </div>
-                              )}
-                              {sale.status !== "pending" && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 px-2"
-                                  onClick={() => deleteSale(sale.id)}
-                                >
-                                  <span className="text-xs">×</span>
-                                </Button>
+                              {sale.soldDate && (
+                                <p className="text-xs text-muted-foreground">
+                                  Vendue le {new Date(sale.soldDate).toLocaleDateString()}
+                                </p>
                               )}
                             </div>
                           </div>
@@ -496,7 +514,7 @@ export default function SalesPage() {
               )}
             </CardContent>
           </Card>
-                 </TabsContent>
+        </TabsContent>
        </Tabs>
        
        {/* Notifications flottantes */}
