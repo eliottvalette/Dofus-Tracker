@@ -79,7 +79,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 border-r bg-sidebar m-6 rounded-2xl sticky top-6 h-[96vh]">
+        <aside className="w-64 border-r bg-sidebar ml-6 mt-6 mr-6 rounded-2xl sticky top-6 h-[96vh]">
           <div className="flex flex-col h-full">
             {/* Header */}
             <div className="flex flex-row items-center p-4 border-b">
@@ -140,7 +140,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 mt-4">
+        <main className="flex-1 mt-6 mb-2">
           {children}
         </main>
       </div>
