@@ -77,14 +77,32 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navbar */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/60">
-        <div className="flex h-16 items-center px-4">
-          <div className="flex flex-row items-center space-x-4">
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-64 border-r bg-sidebar m-6 rounded-2xl">
+          <div className="flex flex-row items-center p-4">
             <h1 className="text-xl font-bold">Dofus Tracker</h1>
             <img src="logo_text.webp" alt="Dofus Tracker" className="w-13 h-13" />
           </div>
-          <div className="ml-auto flex items-center space-x-4">
+          <div className="p-4">
+            <nav className="space-y-2">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Button
+                    key={item.id}
+                    variant={activePage === item.id ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => handleNavigation(item.id, item.href)}
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {item.name}
+                  </Button>
+                );
+              })}
+            </nav>
+          </div>
+          <div className="ml-auto flex items-center p-4 mt-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -111,30 +129,6 @@ export function MainLayout({ children }: MainLayoutProps) {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        </div>
-      </nav>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-blur]:bg-background/60">
-          <div className="p-4">
-            <nav className="space-y-2">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Button
-                    key={item.id}
-                    variant={activePage === item.id ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => handleNavigation(item.id, item.href)}
-                  >
-                    <Icon className="h-4 w-4 mr-2" />
-                    {item.name}
-                  </Button>
-                );
-              })}
-            </nav>
           </div>
         </aside>
 
