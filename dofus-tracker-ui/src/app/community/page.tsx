@@ -94,14 +94,14 @@ export default function CommunityPage() {
       </Card>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Suggestions reçues</CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">156</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">
               Cette année
             </p>
@@ -113,21 +113,9 @@ export default function CommunityPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">
               Implémentées
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Engagement</CardTitle>
-            <Heart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">94%</div>
-            <p className="text-xs text-muted-foreground">
-              Suggestions étudiées
             </p>
           </CardContent>
         </Card>

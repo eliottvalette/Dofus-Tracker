@@ -118,6 +118,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Empêcher l'overscroll/bounce */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  html {
+    /* Empêcher l'overscroll sur toute la page */
+    overscroll-behavior: none;
   }
 }
 

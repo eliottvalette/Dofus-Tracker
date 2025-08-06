@@ -20,7 +20,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [activePage, setActivePage] = useState("dashboard");
+  const [activePage, setActivePage] = useState("items");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -40,13 +40,6 @@ export function MainLayout({ children }: MainLayoutProps) {
   const userName = user ? (user.displayName || (user.email ? user.email.split("@")[0] : "")) : "Guest";
 
   const navigationItems = [
-    {
-      id: "dashboard",
-      name: "Dashboard",
-      icon: HomeIcon,
-      description: "Votre espace personnel et vos objectifs",
-      href: "/dashboard"
-    },
     {
       id: "items",
       name: "Items",
