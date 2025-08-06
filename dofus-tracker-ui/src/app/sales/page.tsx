@@ -2,13 +2,12 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Package, DollarSign, TrendingUp, ShoppingCart, CheckCircle, XCircle } from "lucide-react";
-import { useState, useEffect } from "react";
-import { collection, addDoc, getDocs, getDoc, doc, deleteDoc, query, where } from "firebase/firestore";
+import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { collection, addDoc, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 
@@ -19,7 +18,7 @@ interface SaleItem {
   quantity: number;
   price: number;
   date: string;
-  status: "pending" | "sold";
+  status: "pending" | "sold" | "local_sold";
   soldDate?: string;
 }
 
@@ -39,6 +38,8 @@ export default function SalesPage() {
   const [selectedLotSize, setSelectedLotSize] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [itemsLoading, setItemsLoading] = useState(true);
+  const [localSoldItems, setLocalSoldItems] = useState<SaleItem[]>([]);
+  const [validatingSales, setValidatingSales] = useState(false);
 
   const [floatingNotifications, setFloatingNotifications] = useState<Array<{
     id: string;
@@ -56,7 +57,7 @@ export default function SalesPage() {
     }
   }, [user]);
 
-  const loadSales = async () => {
+  const loadSales = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
@@ -86,9 +87,9 @@ export default function SalesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const loadAllItems = async () => {
+  const loadAllItems = useCallback(async () => {
     setItemsLoading(true);
     try {
       const response = await fetch('/data/merged_with_local_images.csv');
@@ -110,9 +111,9 @@ export default function SalesPage() {
     } finally {
       setItemsLoading(false);
     }
-  };
+  }, []);
 
-  const addToSales = async (item: Item, event: React.MouseEvent, index: number) => {
+  const addToSales = async (item: Item, event: React.MouseEvent) => {
     if (!user) return;
 
     // Créer une notification flottante
@@ -141,7 +142,7 @@ export default function SalesPage() {
         status: "pending",
       };
 
-      const docRef = await addDoc(collection(db, "users", user.uid, "selling"), newSale);
+      await addDoc(collection(db, "users", user.uid, "selling"), newSale);
       
       await loadSales(); // Recharger les ventes
     } catch (error) {
@@ -149,31 +150,67 @@ export default function SalesPage() {
     }
   };
 
-  const markAsSold = async (saleId: string) => {
-    try {
-      // Récupérer la vente depuis selling
-      const sellingRef = doc(db, "users", user!.uid, "selling", saleId);
-      const saleDoc = await getDoc(sellingRef);
-      
-      if (saleDoc.exists()) {
-        const saleData = saleDoc.data() as SaleItem;
-        
-        // Ajouter à la collection sold
-        await addDoc(collection(db, "users", user!.uid, "sold"), {
-          ...saleData,
-          status: "sold",
-          soldDate: new Date().toISOString(),
-        });
-        
-        // Supprimer de la collection selling
-        await deleteDoc(sellingRef);
-        
-        await loadSales(); // Recharger les ventes
-      }
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error);
+  const toggleLocalSold = (saleId: string) => {
+    const sale = sales.find(s => s.id === saleId);
+    if (!sale) return;
+
+    if (sale.status === "pending") {
+      // Marquer comme vendu localement
+      const updatedSale = { ...sale, status: "local_sold" as const };
+      setSales(prev => prev.map(s => s.id === saleId ? updatedSale : s));
+      setLocalSoldItems(prev => [updatedSale, ...prev]);
+    } else if (sale.status === "local_sold") {
+      // Remettre en vente
+      const updatedSale = { ...sale, status: "pending" as const };
+      setSales(prev => prev.map(s => s.id === saleId ? updatedSale : s));
+      setLocalSoldItems(prev => prev.filter(s => s.id !== saleId));
     }
   };
+
+  const validateAllSales = async () => {
+    if (!user || localSoldItems.length === 0) return;
+
+    setValidatingSales(true);
+    try {
+      // Ajouter toutes les ventes locales à Firebase
+      for (const sale of localSoldItems) {
+        const saleData = {
+          ...sale,
+          status: "sold" as const,
+          soldDate: new Date().toISOString(),
+        };
+        
+        await addDoc(collection(db, "users", user.uid, "sold"), saleData);
+        
+        // Supprimer de la collection selling
+        await deleteDoc(doc(db, "users", user.uid, "selling", sale.id));
+      }
+
+      // Vider la liste locale
+      setLocalSoldItems([]);
+      
+      // Recharger les ventes
+      await loadSales();
+      
+      // Notification de succès
+      const notificationId = Date.now().toString();
+      setFloatingNotifications(prev => [...prev, {
+        id: notificationId,
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+        text: `${localSoldItems.length} ventes validées !`,
+      }]);
+      setTimeout(() => {
+        setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
+      }, 2000);
+    } catch (error) {
+      console.error("Erreur lors de la validation des ventes:", error);
+    } finally {
+      setValidatingSales(false);
+    }
+  };
+
+
 
   const cancelSale = async (saleId: string) => {
     try {
@@ -187,12 +224,14 @@ export default function SalesPage() {
 
   const pendingSales = sales.filter(sale => sale.status === "pending").length;
   const soldItems = sales.filter(sale => sale.status === "sold").length;
+  const localSoldCount = localSoldItems.length;
 
   const getStatusColor = (status: SaleItem["status"]) => {
     switch (status) {
       case "pending": return "bg-yellow-500";
       case "sold": return "bg-green-500";
-      default: return "bg-gray-500";
+      case "local_sold": return "bg-primary";
+      default: return "bg-muted";
     }
   };
 
@@ -200,6 +239,7 @@ export default function SalesPage() {
     switch (status) {
       case "pending": return "En attente";
       case "sold": return "Vendu";
+      case "local_sold": return "Vendu (local)";
       default: return "Inconnu";
     }
   };
@@ -226,7 +266,7 @@ export default function SalesPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ventes en attente</CardTitle>
@@ -236,6 +276,18 @@ export default function SalesPage() {
             <div className="text-2xl font-bold">{pendingSales}</div>
             <p className="text-xs text-muted-foreground">
               Items mis en vente
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vendus (local)</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{localSoldCount}</div>
+            <p className="text-xs text-muted-foreground">
+              En attente de validation
             </p>
           </CardContent>
         </Card>
@@ -269,7 +321,7 @@ export default function SalesPage() {
                 Mise en vente
               </CardTitle>
               <CardDescription>
-                Sélectionnez une taille de lot et cliquez sur un item pour l'ajouter à vos ventes
+                Sélectionnez une taille de lot et cliquez sur un item pour l&apos;ajouter à vos ventes
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -302,7 +354,7 @@ export default function SalesPage() {
                       <Card 
                         key={index} 
                         className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
-                        onClick={(e) => addToSales(item, e, index)}
+                        onClick={(e) => addToSales(item, e)}
                       >
                         <CardContent className="p-4 select-none">
                           <div className="flex items-center space-x-3">
@@ -342,14 +394,36 @@ export default function SalesPage() {
           </Card>
         </TabsContent>
 
-                {/* Ventes */}
+        {/* Ventes */}
         <TabsContent value="ventes" className="space-y-6">
           {/* Ventes en cours */}
           <Card>
             <CardHeader>
-              <CardTitle>Ventes en cours ({pendingSales})</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                Ventes en cours ({pendingSales + localSoldCount})
+                {localSoldCount > 0 && (
+                  <Button 
+                    onClick={validateAllSales}
+                    disabled={validatingSales}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    size="sm"
+                  >
+                    {validatingSales ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                        Validation en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Valider ({localSoldCount})
+                      </>
+                    )}
+                  </Button>
+                )}
+              </CardTitle>
               <CardDescription>
-                Cliquez sur une carte pour la vendre
+                Cliquez sur une carte pour la marquer comme vendue
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -358,84 +432,115 @@ export default function SalesPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   <p className="text-muted-foreground mt-2">Chargement...</p>
                 </div>
-              ) : pendingSales === 0 ? (
+              ) : (pendingSales + localSoldCount) === 0 ? (
                 <div className="text-center py-8">
                   <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">Aucune vente en cours</p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Allez dans "Mise en vente" pour ajouter des items
+                    Allez dans &quot;Mise en vente&quot; pour ajouter des items
                   </p>
                 </div>
               ) : (
-                <ScrollArea className="h-[300px]">
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {sales.filter(sale => sale.status === "pending").map((sale) => (
-                      <Card 
-                        key={sale.id} 
-                        className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
-                        onClick={(e) => {
-                          markAsSold(sale.id);
-                          // Créer une notification flottante "Vendu !"
-                          const notificationId = Date.now().toString();
-                          const newNotification = {
-                            id: notificationId,
-                            x: e.clientX,
-                            y: e.clientY,
-                            text: "Vendu !",
-                          };
-                          setFloatingNotifications(prev => [...prev, newNotification]);
-                          setTimeout(() => {
-                            setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
-                          }, 1000);
-                        }}
-                      >
-                        <CardContent className="px-4 select-none">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
-                              {sale.itemImage ? (
-                                <img 
-                                  src={sale.itemImage} 
-                                  alt={sale.itemName}
-                                  className="w-10 h-10 object-contain"
-                                  onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
+                <div className="relative">
+                  <ScrollArea>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {/* Ventes vendues localement (en haut) */}
+                      {localSoldItems.map((sale) => (
+                        <Card 
+                          key={sale.id} 
+                          className="hover:shadow-lg hover:bg-accent transition-all cursor-pointer border-primary/20"
+                          onClick={() => toggleLocalSold(sale.id)}
+                        >
+                          <CardContent className="p-4 select-none">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border">
+                                {sale.itemImage ? (
+                                  <img 
+                                    src={sale.itemImage} 
+                                    alt={sale.itemName}
+                                    className="w-10 h-10 object-contain"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-sm font-medium truncate">{sale.itemName}</p>
+                                  <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
+                                </div>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge className={getStatusColor(sale.status)}>
+                                    {getStatusText(sale.status)}
+                                  </Badge>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(sale.date).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      
+                      {/* Ventes en cours */}
+                      {sales.filter(sale => sale.status === "pending").map((sale) => (
+                        <Card 
+                          key={sale.id} 
+                          className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
+                          onClick={() => toggleLocalSold(sale.id)}
+                        >
+                          <CardContent className="px-4 select-none">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border">
+                                {sale.itemImage ? (
+                                  <img 
+                                    src={sale.itemImage} 
+                                    alt={sale.itemName}
+                                    className="w-10 h-10 object-contain"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-sm font-medium truncate">{sale.itemName}</p>
+                                  <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
+                                </div>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge className={getStatusColor(sale.status)}>
+                                    {getStatusText(sale.status)}
+                                  </Badge>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(sale.date).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    cancelSale(sale.id);
                                   }}
-                                />
-                              ) : (
-                                <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="text-sm font-medium truncate">{sale.itemName}</p>
-                                <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
+                                >
+                                  <XCircle className="h-3 w-3" />
+                                </Button>
                               </div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge className={getStatusColor(sale.status)}>
-                                  {getStatusText(sale.status)}
-                                </Badge>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(sale.date).toLocaleDateString()}
-                                </p>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 px-2"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  cancelSale(sale.id);
-                                }}
-                              >
-                                <XCircle className="h-3 w-3" />
-                              </Button>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </ScrollArea>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -472,7 +577,7 @@ export default function SalesPage() {
                       >
                         <CardContent className="p-4 select-none">
                           <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-border">
                               {sale.itemImage ? (
                                 <img 
                                   src={sale.itemImage} 
