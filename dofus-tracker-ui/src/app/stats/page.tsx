@@ -13,6 +13,8 @@ interface SaleItem {
   id: string;
   itemName: string;
   itemImage?: string;
+  category: string;
+  type: string;
   quantity: number;
   price: number;
   date: string;
@@ -36,6 +38,14 @@ interface StatsData {
     sales: number;
     quantity: number;
   }>;
+  topTypesByCategory: Array<{
+    category: string;
+    types: Array<{
+      name: string;
+      sales: number;
+      items: number;
+    }>;
+  }>;
   recentActivity: Array<{
     type: "sale" | "purchase";
     item: string;
@@ -56,6 +66,7 @@ export default function StatsPage() {
     averageSaleTime: 0,
     topCategories: [],
     topItems: [],
+    topTypesByCategory: [],
     recentActivity: [],
     saleTimeDistribution: []
   });
@@ -110,21 +121,8 @@ export default function StatsPage() {
       const categoryMap = new Map<string, { sales: number; items: number }>();
       soldData.forEach(sale => {
         // Déterminer la catégorie basée sur le nom de l'item
-        let category = "Autres";
-        const itemName = sale.itemName.toLowerCase();
-        
-        if (itemName.includes("épée") || itemName.includes("hache") || itemName.includes("arc") || itemName.includes("bâton")) {
-          category = "Armes";
-        } else if (itemName.includes("botte") || itemName.includes("casque") || itemName.includes("cape") || itemName.includes("anneau")) {
-          category = "Équipements";
-        } else if (itemName.includes("potion") || itemName.includes("pancarte") || itemName.includes("dofus")) {
-          category = "Consommables";
-        } else if (itemName.includes("fer") || itemName.includes("bois") || itemName.includes("pierre") || itemName.includes("cuir")) {
-          category = "Ressources";
-        }
-
-        const current = categoryMap.get(category) || { sales: 0, items: 0 };
-        categoryMap.set(category, {
+        const current = categoryMap.get(sale.category) || { sales: 0, items: 0 };
+        categoryMap.set(sale.category, {
           sales: current.sales + 1,
           items: current.items + sale.quantity
         });
@@ -149,6 +147,31 @@ export default function StatsPage() {
         .map(([name, data]) => ({ name, ...data }))
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 4);
+
+      // Analyser les types les plus vendus par catégorie
+      const typeMap = new Map<string, Map<string, { sales: number; items: number }>>();
+      soldData.forEach(sale => {
+        const categoryTypes = typeMap.get(sale.category) || new Map<string, { sales: number; items: number }>();
+        const currentType = categoryTypes.get(sale.type) || { sales: 0, items: 0 };
+        categoryTypes.set(sale.type, {
+          sales: currentType.sales + 1,
+          items: currentType.items + sale.quantity
+        });
+        typeMap.set(sale.category, categoryTypes);
+      });
+
+      const topTypesByCategory: Array<{ category: string; types: Array<{ name: string; sales: number; items: number }> }> = [];
+      topCategories.forEach(category => {
+        const categoryTypes = typeMap.get(category.name) || new Map<string, { sales: number; items: number }>();
+        const sortedTypes = Array.from(categoryTypes.entries())
+          .map(([name, data]) => ({ name, ...data }))
+          .sort((a, b) => b.sales - a.sales);
+        
+        topTypesByCategory.push({
+          category: category.name,
+          types: sortedTypes.slice(0, 3) // Prendre les 3 meilleurs types par catégorie
+        });
+      });
 
       // Activité récente (dernières 10 ventes)
       const recentActivity = soldData
@@ -234,6 +257,7 @@ export default function StatsPage() {
         averageSaleTime,
         topCategories,
         topItems,
+        topTypesByCategory,
         recentActivity,
         saleTimeDistribution
       });
@@ -308,7 +332,7 @@ export default function StatsPage() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.averageSaleTime.toFixed(1)}h</div>
+                <div className="text-2xl font-bold">{stats.averageSaleTime.toFixed(2)}h</div>
                 <p className="text-xs text-muted-foreground">
                   Temps de vente moyen
                 </p>
@@ -409,6 +433,53 @@ export default function StatsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Top Types by Category */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Meilleurs types par catégorie</CardTitle>
+              <CardDescription>
+                Types d'items les plus vendus par catégorie
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {stats.topTypesByCategory.length > 0 ? (
+                <div className="space-y-4">
+                  {stats.topTypesByCategory.map((categoryStats, index) => (
+                    <div key={categoryStats.category} className="space-y-3">
+                      <h4 className="font-medium">{categoryStats.category}</h4>
+                      <div className="space-y-2">
+                        {categoryStats.types.map((type, typeIndex) => (
+                          <div key={type.name} className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                                {typeIndex + 1}
+                              </div>
+                              <div>
+                                <p className="font-medium">{type.name}</p>
+                                <p className="text-sm text-muted-foreground">{type.sales} ventes</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium">{type.items} items</p>
+                              <p className="text-sm text-muted-foreground">
+                                {stats.totalItems > 0 ? ((type.items / stats.totalItems) * 100).toFixed(1) : "0"}%
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune vente pour analyser les types par catégorie</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Sale Time Distribution */}
           <Card>

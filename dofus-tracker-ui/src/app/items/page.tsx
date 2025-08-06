@@ -4,9 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Filter, Grid, List } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Search, Filter, Grid, List, Heart, HeartOff } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { collection, addDoc, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/lib/firebase-provider";
 
 interface Item {
   category: string;
@@ -17,16 +20,35 @@ interface Item {
   image_url: string;
 }
 
+interface FavoriteItem {
+  id: string;
+  itemName: string;
+  category: string;
+  type: string;
+  niveau: string;
+  image_url: string;
+  createdAt: any;
+}
+
 export default function ItemsPage() {
+  const { user } = useAuth();
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [displayedItems, setDisplayedItems] = useState<Item[]>([]);
+  const [favoriteItems, setFavoriteItems] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [favoriteFilter, setFavoriteFilter] = useState<"all" | "favorites" | "not-favorites">("all");
   const [loading, setLoading] = useState(true);
   const [itemsToShow, setItemsToShow] = useState(100);
+  const [floatingNotifications, setFloatingNotifications] = useState<Array<{
+    id: string;
+    x: number;
+    y: number;
+    text: string;
+  }>>([]);
 
   const categories = [
     { id: "armes", name: "Armes" },
@@ -37,11 +59,14 @@ export default function ItemsPage() {
 
   useEffect(() => {
     loadAllItems();
-  }, []);
+    if (user) {
+      loadFavorites();
+    }
+  }, [user]);
 
   useEffect(() => {
     filterItems();
-  }, [allItems, searchTerm, selectedCategory, selectedType]);
+  }, [allItems, searchTerm, selectedCategory, selectedType, favoriteFilter, favoriteItems]);
 
   useEffect(() => {
     // Mettre à jour les items affichés quand les items filtrés changent
@@ -79,6 +104,86 @@ export default function ItemsPage() {
     }
   };
 
+  const loadFavorites = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const favoritesRef = collection(db, "users", user.uid, "favorites");
+      const favoritesSnapshot = await getDocs(favoritesRef);
+      const favoritesSet = new Set<string>();
+      
+      favoritesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        favoritesSet.add(data.itemName);
+      });
+      
+      setFavoriteItems(favoritesSet);
+    } catch (error) {
+      console.error("Erreur lors du chargement des favoris:", error);
+    }
+  }, [user]);
+
+  const toggleFavorite = async (item: Item, event: React.MouseEvent) => {
+    if (!user) return;
+
+    const isCurrentlyFavorite = favoriteItems.has(item.nom);
+    const notificationId = Date.now().toString();
+    
+    // Créer une notification flottante
+    const newNotification = {
+      id: notificationId,
+      x: event.clientX,
+      y: event.clientY,
+      text: `+${isCurrentlyFavorite ? "Retiré" : "Ajouté"}`,
+    };
+    
+    setFloatingNotifications(prev => [...prev, newNotification]);
+    
+    // Supprimer la notification après l'animation
+    setTimeout(() => {
+      setFloatingNotifications(prev => prev.filter(n => n.id !== notificationId));
+    }, 1000);
+
+    try {
+      if (isCurrentlyFavorite) {
+        // Retirer des favoris
+        const favoritesRef = collection(db, "users", user.uid, "favorites");
+        const q = query(favoritesRef, where("itemName", "==", item.nom));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach(async (doc) => {
+          await deleteDoc(doc.ref);
+        });
+        
+        setFavoriteItems(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(item.nom);
+          return newSet;
+        });
+      } else {
+        // Ajouter aux favoris
+        const favoriteData = {
+          itemName: item.nom,
+          category: item.category,
+          type: item.type,
+          niveau: item.niveau,
+          image_url: item.image_url,
+          createdAt: new Date()
+        };
+        
+        await addDoc(collection(db, "users", user.uid, "favorites"), favoriteData);
+        
+        setFavoriteItems(prev => {
+          const newSet = new Set(prev);
+          newSet.add(item.nom);
+          return newSet;
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la modification des favoris:", error);
+    }
+  };
+
   const filterItems = () => {
     let filtered = allItems;
 
@@ -97,9 +202,14 @@ export default function ItemsPage() {
       filtered = filtered.filter(item => item.type === selectedType);
     }
 
+    // Filtre des favoris
+    if (favoriteFilter === "favorites") {
+      filtered = filtered.filter(item => favoriteItems.has(item.nom));
+    } else if (favoriteFilter === "not-favorites") {
+      filtered = filtered.filter(item => !favoriteItems.has(item.nom));
+    }
+
     setFilteredItems(filtered);
-    // Réinitialiser le nombre d'items à afficher quand on change les filtres
-    setItemsToShow(100);
   };
 
   const loadMoreItems = () => {
@@ -107,94 +217,110 @@ export default function ItemsPage() {
   };
 
   const getUniqueTypes = () => {
-    const categoryItems = selectedCategory 
-      ? allItems.filter(item => item.category === selectedCategory)
-      : allItems;
-    return [...new Set(categoryItems.map(item => item.type))];
+    const types = new Set<string>();
+    filteredItems.forEach(item => types.add(item.type));
+    return Array.from(types).sort();
   };
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Veuillez vous connecter pour accéder aux items</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Items</h1>
-          <p className="text-muted-foreground">
-            Explorez tous les items disponibles dans la base de données
-          </p>
+      {/* Floating Notifications */}
+      {floatingNotifications.map((notification) => (
+        <div
+          key={notification.id}
+          className="fixed z-50 pointer-events-none animate-ping"
+          style={{
+            left: notification.x - 20,
+            top: notification.y - 20,
+          }}
+        >
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-primary text-primary-foreground">
+            <Heart className="h-4 w-4" />
+            {notification.text}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === "grid" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("grid")}
-          >
-            <Grid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "list" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("list")}
-          >
-            <List className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      ))}
 
-      {/* Filters */}
+      {/* Search and Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Filtres
-          </CardTitle>
+          <CardTitle>Recherche et filtres</CardTitle>
+          <CardDescription>
+            Trouvez rapidement vos items préférés
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher un item..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Rechercher un item..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-          
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Catégorie</label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full p-2 border rounded-md"
+
+          {/* View Mode and Favorite Filter */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === "grid" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
               >
-                <option value="">Toutes les catégories</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                <Grid className="h-4 w-4 mr-2" />
+                Grille
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+              >
+                <List className="h-4 w-4 mr-2" />
+                Liste
+              </Button>
             </div>
-            <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Type</label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full p-2 border rounded-md"
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant={favoriteFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFavoriteFilter("all")}
               >
-                <option value="">Tous les types</option>
-                {getUniqueTypes().map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+                Tous
+              </Button>
+              <Button
+                variant={favoriteFilter === "favorites" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFavoriteFilter("favorites")}
+              >
+                <Heart className="h-4 w-4 mr-2" />
+                Favoris
+              </Button>
+              <Button
+                variant={favoriteFilter === "not-favorites" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFavoriteFilter("not-favorites")}
+              >
+                <HeartOff className="h-4 w-4 mr-2" />
+                Non favoris
+              </Button>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          {/* Categories */}
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge 
               variant={selectedCategory === "" ? "default" : "secondary"}
               className="cursor-pointer"
@@ -224,6 +350,7 @@ export default function ItemsPage() {
             {selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.name} - ` : ""}
             {selectedType ? `${selectedType} - ` : ""}
             {searchTerm ? `Recherche: "${searchTerm}"` : "Tous les items"}
+            {favoriteFilter !== "all" && ` - ${favoriteFilter === "favorites" ? "Favoris" : "Non favoris"}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -238,7 +365,11 @@ export default function ItemsPage() {
                 {viewMode === "grid" ? (
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {displayedItems.map((item, index) => (
-                      <Card key={index} className="hover:shadow-lg transition-all cursor-pointer">
+                      <Card 
+                        key={index} 
+                        className="hover:shadow-lg transition-all cursor-pointer relative group"
+                        onClick={(e) => toggleFavorite(item, e)}
+                      >
                         <CardContent className="px-4">
                           <div className="flex items-center space-x-3">
                             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
@@ -268,13 +399,23 @@ export default function ItemsPage() {
                             </div>
                           </div>
                         </CardContent>
+                        {/* Favorite Badge */}
+                        {favoriteItems.has(item.nom) && (
+                          <div className="absolute top-2 right-2">
+                            <Heart className="h-4 w-4 text-red-500 fill-current" />
+                          </div>
+                        )}
                       </Card>
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {displayedItems.map((item, index) => (
-                      <Card key={index} className="hover:shadow-lg transition-all cursor-pointer">
+                      <Card 
+                        key={index} 
+                        className="hover:shadow-lg transition-all cursor-pointer relative group"
+                        onClick={(e) => toggleFavorite(item, e)}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
@@ -302,6 +443,12 @@ export default function ItemsPage() {
                             </div>
                           </div>
                         </CardContent>
+                        {/* Favorite Badge */}
+                        {favoriteItems.has(item.nom) && (
+                          <div className="absolute top-2 right-2">
+                            <Heart className="h-4 w-4 text-red-500 fill-current" />
+                          </div>
+                        )}
                       </Card>
                     ))}
                   </div>

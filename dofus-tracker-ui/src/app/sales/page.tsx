@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, MoreHorizontal } from "lucide-react";
+import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, MoreHorizontal, Heart } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -22,6 +22,8 @@ interface SaleItem {
   id: string;
   itemName: string;
   itemImage?: string;
+  category: string;
+  type: string;
   quantity: number;
   price: number;
   date: string;
@@ -44,6 +46,7 @@ export default function SalesPage() {
   const { user } = useAuth();
   const [sales, setSales] = useState<SaleItem[]>([]);
   const [allItems, setAllItems] = useState<Item[]>([]);
+  const [favoriteItems, setFavoriteItems] = useState<Set<string>>(new Set());
   const [selectedLotSize, setSelectedLotSize] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [itemsLoading, setItemsLoading] = useState(true);
@@ -57,12 +60,13 @@ export default function SalesPage() {
     text: string;
   }>>([]);
 
-  const lotSizes = [1, 10, 100];
+  const lotSizes = [1, 10, 100, 1000];
 
   useEffect(() => {
     if (user) {
       loadSales();
       loadAllItems();
+      loadFavorites();
     }
   }, [user]);
 
@@ -98,6 +102,25 @@ export default function SalesPage() {
     }
   }, [user]);
 
+  const loadFavorites = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const favoritesRef = collection(db, "users", user.uid, "favorites");
+      const favoritesSnapshot = await getDocs(favoritesRef);
+      const favoritesSet = new Set<string>();
+      
+      favoritesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        favoritesSet.add(data.itemName);
+      });
+      
+      setFavoriteItems(favoritesSet);
+    } catch (error) {
+      console.error("Erreur lors du chargement des favoris:", error);
+    }
+  }, [user]);
+
   const loadAllItems = useCallback(async () => {
     setItemsLoading(true);
     try {
@@ -114,13 +137,28 @@ export default function SalesPage() {
           return { category, nom, type, niveau, web_image_url, image_url};
         });
       
-      setAllItems(parsedItems);
+      // Filtrer pour ne garder que les favoris
+      const favoriteItemsList = parsedItems.filter(item => favoriteItems.has(item.nom));
+      
+      // Trier par nom
+      const sortedItems = favoriteItemsList.sort((a, b) => a.nom.localeCompare(b.nom));
+      
+      setAllItems(sortedItems);
     } catch (error) {
       console.error('Erreur lors du chargement des items:', error);
     } finally {
       setItemsLoading(false);
     }
-  }, []);
+  }, [favoriteItems]);
+
+  // Recharger les items quand les favoris changent
+  useEffect(() => {
+    if (favoriteItems.size > 0) {
+      loadAllItems();
+    } else {
+      setAllItems([]); // Vider la liste si pas de favoris
+    }
+  }, [favoriteItems, loadAllItems]);
 
   const addToSales = async (item: Item, event: React.MouseEvent) => {
     if (!user) return;
@@ -145,6 +183,8 @@ export default function SalesPage() {
       const newSale: Omit<SaleItem, 'id'> = {
         itemName: item.nom,
         itemImage: item.image_url,
+        category: item.category,
+        type: item.type,
         quantity: selectedLotSize,
         price: 0, // Prix à définir par l'utilisateur
         date: new Date().toISOString(),
@@ -220,8 +260,6 @@ export default function SalesPage() {
       setValidatingSales(false);
     }
   };
-
-
 
   const cancelSale = async (saleId: string) => {
     try {
@@ -346,13 +384,21 @@ export default function SalesPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   <p className="text-muted-foreground mt-2">Chargement des items...</p>
                 </div>
+              ) : allItems.length === 0 ? (
+                <div className="text-center py-8">
+                  <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucun favori trouvé</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Allez dans la page "Items" pour ajouter des favoris
+                  </p>
+                </div>
               ) : (
                 <ScrollArea className="h-[500px]">
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {allItems.slice(0, 200).map((item, index) => (
                       <Card 
                         key={index} 
-                        className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
+                        className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer relative"
                         onClick={(e) => addToSales(item, e)}
                       >
                         <CardContent className="px-4 select-none">
@@ -384,6 +430,12 @@ export default function SalesPage() {
                             </div>
                           </div>
                         </CardContent>
+                        {/* Favorite Badge */}
+                        {favoriteItems.has(item.nom) && (
+                          <div className="absolute top-2 right-2">
+                            <Heart className="h-4 w-4 text-red-500 fill-current" />
+                          </div>
+                        )}
                       </Card>
                     ))}
                   </div>
