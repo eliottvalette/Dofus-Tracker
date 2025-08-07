@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { signOut, onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart, BarChart3, Users, LogOut, User as UserIcon, Menu, X } from "lucide-react";
+import { Package, ShoppingCart, BarChart3, Users, LogOut, User as UserIcon, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,

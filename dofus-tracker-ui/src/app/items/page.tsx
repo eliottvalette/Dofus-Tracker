@@ -104,8 +104,8 @@ export default function ItemsPage() {
       const favoritesSnapshot = await getDocs(favoritesRef);
       const favoritesSet = new Set<string>();
       
-      favoritesSnapshot.forEach((doc) => {
-        const data = doc.data();
+      favoritesSnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
         favoritesSet.add(data.itemName);
       });
       
@@ -143,8 +143,8 @@ export default function ItemsPage() {
         const q = query(favoritesRef, where("itemName", "==", item.nom));
         const querySnapshot = await getDocs(q);
         
-        querySnapshot.forEach(async (doc) => {
-          await deleteDoc(doc.ref);
+        querySnapshot.forEach(async (docSnapshot) => {
+          await deleteDoc(docSnapshot.ref);
         });
         
         setFavoriteItems(prev => {
@@ -206,12 +206,6 @@ export default function ItemsPage() {
 
   const loadMoreItems = () => {
     setItemsToShow(prev => prev + 100);
-  };
-
-  const getUniqueTypes = () => {
-    const types = new Set<string>();
-    filteredItems.forEach(item => types.add(item.type));
-    return Array.from(types).sort();
   };
 
   if (!user) {
