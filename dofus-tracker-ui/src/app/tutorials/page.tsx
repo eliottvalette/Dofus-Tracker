@@ -16,7 +16,7 @@ export default function TutorialsPage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Monitor className="h-5 w-5 text-blue-600" />
+              <Monitor className="h-5 w-5 text-primary" />
               <CardTitle>Tutoriel PC</CardTitle>
             </div>
             <CardDescription>
@@ -41,7 +41,7 @@ export default function TutorialsPage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5 text-green-600" />
+              <Smartphone className="h-5 w-5 text-primary" />
               <CardTitle>Tutoriel Mobile</CardTitle>
             </div>
             <CardDescription>

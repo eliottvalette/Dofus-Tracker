@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, Heart } from "lucide-react";
+import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, Heart, HelpCircle } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
+import { HelpDialogComponent } from "@/components/ui/help-dialog";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -59,6 +60,7 @@ export default function SalesPage() {
     y: number;
     text: string;
   }>>([]);
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
 
   const lotSizes = [1, 10, 100, 1000];
 
@@ -312,6 +314,13 @@ export default function SalesPage() {
             Gérez vos ventes et suivez vos revenus
           </p>
         </div>
+        <button
+          onClick={() => setHelpDialogOpen(true)}
+          className="h-16 w-16 p-0 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
+          title="Aide"
+        >
+          <HelpCircle className="h-8 w-8 bg-primary text-primary-foreground rounded-full" />
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -693,6 +702,13 @@ export default function SalesPage() {
            </div>
          </div>
        ))}
+
+       {/* Help Dialog */}
+       <HelpDialogComponent 
+         open={helpDialogOpen} 
+         onOpenChange={setHelpDialogOpen} 
+         page="sales"
+       />
      </div>
    );
  } 
