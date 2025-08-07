@@ -334,8 +334,8 @@ export default function ItemsPage() {
           {/* Categories */}
           <div className="flex items-center gap-2 flex-wrap">
             <Badge 
-              variant={selectedCategory === "" ? "default" : "secondary"}
-              className="cursor-pointer"
+              variant={selectedCategory === "" ? "default" : "outline"}
+              className="cursor-pointer h-7"
               onClick={() => setSelectedCategory("")}
             >
               {isMobile ? "Toutes" : "Toutes"}
@@ -343,8 +343,8 @@ export default function ItemsPage() {
             {categories.map((category) => (
               <Badge 
                 key={category.id}
-                variant={selectedCategory === category.id ? "default" : "secondary"}
-                className="cursor-pointer"
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                className="cursor-pointer h-7 hover:bg-accent"
                 onClick={() => setSelectedCategory(category.id)}
               >
                 {category.name}
@@ -379,12 +379,12 @@ export default function ItemsPage() {
                     {displayedItems.map((item, index) => (
                       <Card 
                         key={index} 
-                        className="hover:shadow-lg transition-all cursor-pointer relative group"
+                        className="hover:shadow-lg transition-all cursor-pointer relative group hover:bg-accent"
                         onClick={(e) => toggleFavorite(item, e)}
                       >
                         <CardContent className="px-3 py-3 md:px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border">
                               {item.image_url ? (
                                 <img 
                                   src={item.image_url} 

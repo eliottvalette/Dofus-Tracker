@@ -165,7 +165,7 @@ function DemoItemCard() {
 
   return (
     <Card className="hover:shadow-lg transition-all cursor-pointer relative group max-w-xs mx-auto">
-      <CardContent className="px-3 py-3">
+      <CardContent className="px-3 py-1">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
             <img 
@@ -244,8 +244,8 @@ function DemoSalesCard() {
 
   return (
     <div className="relative">
-      <Card className="hover:shadow-lg transition-all cursor-pointer relative group max-w-xs mx-auto">
-        <CardContent className="px-3 py-3">
+      <Card className="hover:shadow-lg transition-all cursor-pointer relative group max-w-xs mx-auto w-50">
+        <CardContent className="px-3 py-1">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
               <img 
@@ -307,8 +307,8 @@ function DemoMiseEnVente() {
 
       {/* Carte d'item cliquable */}
       <div className="relative">
-        <Card className="hover:shadow-lg transition-all cursor-pointer relative group max-w-xs mx-auto">
-          <CardContent className="px-3 py-3">
+        <Card className="hover:shadow-lg transition-all cursor-pointer relative group max-w-xs mx-auto w-50">
+          <CardContent className="px-3 py-1">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                 <img 
@@ -376,7 +376,7 @@ export function HelpDialogComponent({ open, onOpenChange, page = "items" }: Help
                 <DemoItemCard />
               </div>
               
-              <p>Cette page vous aide à <strong>préparer vos ventes</strong>. Vos favoris seront disponibles dans &quot;Mes Ventes&quot;, évitant de chercher parmi les 6000 items existants.</p>
+              <p>Cette page vous aide à <strong>préparer vos ventes</strong>. Vos favoris seront disponibles dans &quot;Mes Ventes&quot;, évitant de chercher parmi les 5936 items existants.</p>
             </div>
           ) : (
             <div className="space-y-6">

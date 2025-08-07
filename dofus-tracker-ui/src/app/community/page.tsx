@@ -54,7 +54,7 @@ export default function CommunityPage() {
           <div className="space-y-4">
             <p className="text-muted-foreground text-sm md:text-base">
               Vous avez des idées pour améliorer Dofus Tracker ? 
-              Partagez vos suggestions avec nous !
+              Partagez vos suggestions !
             </p>
             
             <div className="space-y-3">
@@ -75,7 +75,7 @@ export default function CommunityPage() {
             </div>
 
             <div className="space-y-2 md:space-y-3 text-xs md:text-sm text-muted-foreground">
-              <p>Nous étudions toutes les suggestions avec attention.</p>
+              <p>J&apos;étudie toutes les suggestions avec attention.</p>
               <p>Merci de votre contribution à l&apos;amélioration de Dofus Tracker !</p>
             </div>
           </div>
