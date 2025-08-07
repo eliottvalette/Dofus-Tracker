@@ -4,13 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Grid, List, Heart, HeartOff } from "lucide-react";
+import { Search, Grid, List, Heart, HeartOff, HelpCircle } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { collection, addDoc, deleteDoc, doc, getDocs, query, where } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { HelpDialogComponent } from "@/components/ui/help-dialog";
 
 interface Item {
   category: string;
@@ -41,6 +42,7 @@ export default function ItemsPage() {
     y: number;
     text: string;
   }>>([]);
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
 
   const categories = [
     { id: "armes", name: "Armes" },
@@ -239,11 +241,22 @@ export default function ItemsPage() {
 
       {/* Search and Filters */}
       <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg md:text-xl">Recherche et filtres</CardTitle>
-          <CardDescription>
-            Trouvez rapidement vos items préférés
-          </CardDescription>
+        <CardHeader className="pb-4 relative">
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-lg md:text-xl">Recherche et filtres</CardTitle>
+              <CardDescription>
+                Trouvez rapidement vos items préférés
+              </CardDescription>
+            </div>
+            <button
+              onClick={() => setHelpDialogOpen(true)}
+              className="h-16 w-16 p-0 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
+              title="Aide"
+            >
+              <HelpCircle className="h-8 w-8 bg-primary text-primary-foreground rounded-full" />
+            </button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search */}
@@ -476,6 +489,12 @@ export default function ItemsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Help Dialog */}
+      <HelpDialogComponent 
+        open={helpDialogOpen} 
+        onOpenChange={setHelpDialogOpen} 
+      />
     </div>
   );
 } 
