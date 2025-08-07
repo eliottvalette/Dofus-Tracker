@@ -3,11 +3,29 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BarChart3, Package, Activity, Loader2, Clock, Target } from "lucide-react";
+import { BarChart3, Package, Activity, Loader2, Clock, Target, PieChart } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart as RechartsPieChart,
+  Cell,
+  Pie
+} from 'recharts';
+
+// Palettes de couleurs
+const GRADIENT_COLORS = [
+  '#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe',
+  '#43e97b', '#38f9d7', '#fccb90', '#d57eeb', '#74b9ff', '#fd79a8'
+];
 
 interface SaleItem {
   id: string;
@@ -32,6 +50,7 @@ interface StatsData {
     name: string;
     sales: number;
     items: number;
+    color: string;
   }>;
   topItems: Array<{
     name: string;
@@ -55,6 +74,12 @@ interface StatsData {
   saleTimeDistribution: Array<{
     range: string;
     count: number;
+    color: string;
+  }>;
+  salesTrend: Array<{
+    date: string;
+    sales: number;
+    items: number;
   }>;
 }
 
@@ -68,7 +93,8 @@ export default function StatsPage() {
     topItems: [],
     topTypesByCategory: [],
     recentActivity: [],
-    saleTimeDistribution: []
+    saleTimeDistribution: [],
+    salesTrend: []
   });
   const [loading, setLoading] = useState(true);
 
@@ -129,9 +155,13 @@ export default function StatsPage() {
       });
 
       const topCategories = Array.from(categoryMap.entries())
-        .map(([name, data]) => ({ name, ...data }))
+        .map(([name, data], index) => ({ 
+          name, 
+          ...data, 
+          color: GRADIENT_COLORS[index % GRADIENT_COLORS.length] 
+        }))
         .sort((a, b) => b.sales - a.sales)
-        .slice(0, 4);
+        .slice(0, 6);
 
       // Analyser les items les plus vendus
       const itemMap = new Map<string, { sales: number; quantity: number }>();
@@ -146,7 +176,7 @@ export default function StatsPage() {
       const topItems = Array.from(itemMap.entries())
         .map(([name, data]) => ({ name, ...data }))
         .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 4);
+        .slice(0, 8);
 
       // Analyser les types les plus vendus par catégorie
       const typeMap = new Map<string, Map<string, { sales: number; items: number }>>();
@@ -218,13 +248,13 @@ export default function StatsPage() {
           };
         });
 
-      // Distribution des délais de vente
+      // Distribution des délais de vente avec couleurs
       const saleTimeDistribution = [
-        { range: "< 1h", count: 0 },
-        { range: "1-6h", count: 0 },
-        { range: "6-24h", count: 0 },
-        { range: "1-7j", count: 0 },
-        { range: "> 7j", count: 0 }
+        { range: "< 1h", count: 0, color: '#22c55e' },
+        { range: "1-6h", count: 0, color: '#3b82f6' },
+        { range: "6-24h", count: 0, color: '#f59e0b' },
+        { range: "1-7j", count: 0, color: '#ef4444' },
+        { range: "> 7j", count: 0, color: '#8b5cf6' }
       ];
 
       soldData.forEach(sale => {
@@ -259,7 +289,8 @@ export default function StatsPage() {
         topItems,
         topTypesByCategory,
         recentActivity,
-        saleTimeDistribution
+        saleTimeDistribution,
+        salesTrend: []
       });
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -300,51 +331,51 @@ export default function StatsPage() {
         </div>
       ) : (
         <>
-          {/* Key Metrics */}
+          {/* Key Metrics avec couleurs */}
           <div className="grid gap-4 md:grid-cols-4">
-            <Card>
+            <Card className="border-l-4 border-l-blue-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Ventes totales</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
+                <Package className="h-4 w-4 text-blue-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalSales}</div>
+                <div className="text-2xl font-bold text-blue-600">{stats.totalSales}</div>
                 <p className="text-xs text-muted-foreground">
                   Transactions complétées
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-l-4 border-l-primary">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Items vendus</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
+                <Target className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.totalItems}</div>
+                <div className="text-2xl font-bold text-green-600">{stats.totalItems}</div>
                 <p className="text-xs text-muted-foreground">
                   Nombre total d&apos;items
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-l-4 border-l-orange-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Délai moyen</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Clock className="h-4 w-4 text-orange-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.averageSaleTime.toFixed(2)}h</div>
+                <div className="text-2xl font-bold text-orange-600">{stats.averageSaleTime.toFixed(2)}h</div>
                 <p className="text-xs text-muted-foreground">
                   Temps de vente moyen
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-l-4 border-l-purple-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Activité</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
+                <Activity className="h-4 w-4 text-purple-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.recentActivity.length}</div>
+                <div className="text-2xl font-bold text-purple-600">{stats.recentActivity.length}</div>
                 <p className="text-xs text-muted-foreground">
                   Ventes récentes
                 </p>
@@ -352,176 +383,108 @@ export default function StatsPage() {
             </Card>
           </div>
 
+          {/* Graphiques principaux */}
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Top Categories */}
+            {/* Graphique en barres des catégories */}
             <Card>
               <CardHeader>
-                <CardTitle>Meilleures catégories</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Ventes par catégorie
+                </CardTitle>
                 <CardDescription>
-                  Nombre de ventes par catégorie d&apos;items
+                  Performance de vos différentes catégories d&apos;items
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {stats.topCategories.length > 0 ? (
-                  <div className="space-y-4">
-                    {stats.topCategories.map((category, index) => (
-                      <div key={category.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium">{category.name}</p>
-                            <p className="text-sm text-muted-foreground">{category.sales} ventes</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">{category.items} items</p>
-                          <p className="text-sm text-muted-foreground">
-                            {stats.totalItems > 0 ? ((category.items / stats.totalItems) * 100).toFixed(1) : "0"}%
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={stats.topCategories}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fontSize: 12 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                      />
+                      <YAxis />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'var(--background)', 
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px'
+                        }}
+                      />
+                      <Bar dataKey="sales" radius={[4, 4, 0, 0]}>
+                        {stats.topCategories.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 ) : (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Aucune vente pour analyser les catégories</p>
+                  <div className="h-[300px] flex items-center justify-center">
+                    <div className="text-center">
+                      <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">Aucune donnée disponible</p>
+                    </div>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Top Items */}
+            {/* Graphique en secteurs des délais de vente */}
             <Card>
               <CardHeader>
-                <CardTitle>Meilleurs vendeurs</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="h-5 w-5 text-primary" />
+                  Délais de vente
+                </CardTitle>
                 <CardDescription>
-                  Items les plus vendus en quantité
+                  Répartition des temps de vente
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {stats.topItems.length > 0 ? (
-                  <div className="space-y-4">
-                    {stats.topItems.map((item, index) => (
-                      <div key={item.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium">{item.name}</p>
-                            <p className="text-sm text-muted-foreground">{item.sales} ventes</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">{item.quantity} items</p>
-                          <p className="text-sm text-muted-foreground">
-                            {stats.totalItems > 0 ? ((item.quantity / stats.totalItems) * 100).toFixed(1) : "0"}%
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                {stats.saleTimeDistribution.some(d => d.count > 0) ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RechartsPieChart>
+                      <Pie
+                        data={stats.saleTimeDistribution.filter(d => d.count > 0)}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={120}
+                        paddingAngle={5}
+                        dataKey="count"
+                        label={({ range, percent }) => `${range} (${((percent || 0) * 100).toFixed(0)}%)`}
+                      >
+                        {stats.saleTimeDistribution.filter(d => d.count > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'var(--background)', 
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
                 ) : (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Aucune vente pour analyser les items</p>
+                  <div className="h-[300px] flex items-center justify-center">
+                    <div className="text-center">
+                      <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">Aucune donnée disponible</p>
+                    </div>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Top Types by Category */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Meilleurs types par catégorie</CardTitle>
-                <CardDescription>
-                  Types d&apos;items les plus vendus par catégorie
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {stats.topTypesByCategory.length > 0 ? (
-                <div className="space-y-4">
-                  {stats.topTypesByCategory.map((categoryStats, index) => (
-                    <div key={categoryStats.category} className="space-y-3">
-                      <h4 className="font-medium">{categoryStats.category}</h4>
-                      <div className="space-y-2">
-                        {categoryStats.types.map((type, typeIndex) => (
-                          <div key={type.name} className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                                {typeIndex + 1}
-                              </div>
-                              <div>
-                                <p className="font-medium">{type.name}</p>
-                                <p className="text-sm text-muted-foreground">{type.sales} ventes</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-medium">{type.items} items</p>
-                              <p className="text-sm text-muted-foreground">
-                                {stats.totalItems > 0 ? ((type.items / stats.totalItems) * 100).toFixed(1) : "0"}%
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Aucune vente pour analyser les types par catégorie</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Sale Time Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribution des délais de vente</CardTitle>
-              <CardDescription>
-                Répartition du temps de vente de vos items
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {stats.saleTimeDistribution.some(d => d.count > 0) ? (
-                <div className="space-y-4">
-                  {stats.saleTimeDistribution.map((distribution, index) => (
-                    <div key={distribution.range} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="font-medium">{distribution.range}</p>
-                          <p className="text-sm text-muted-foreground">{distribution.count} ventes</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">{distribution.count}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {stats.totalSales > 0 ? ((distribution.count / stats.totalSales) * 100).toFixed(1) : "0"}%
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Aucune donnée de délai de vente</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Activity */}
+          {/* Recent Activity avec couleurs */}
           <Card>
             <CardHeader>
               <CardTitle>Activité récente</CardTitle>
@@ -534,9 +497,9 @@ export default function StatsPage() {
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-4">
                     {stats.recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border-l-4 border-l-primary bg-accent">
                         <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-primary" />
+                          <div className="w-3 h-3 rounded-full bg-primary" />
                           <div>
                             <p className="font-medium">{activity.item}</p>
                             <p className="text-sm text-muted-foreground">
@@ -546,7 +509,7 @@ export default function StatsPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-medium">{activity.quantity} items</p>
-                          <Badge variant="default">
+                          <Badge variant="default" className="bg-primary hover:bg-green-600">
                             Vente
                           </Badge>
                         </div>
@@ -566,24 +529,122 @@ export default function StatsPage() {
             </CardContent>
           </Card>
 
-          {/* Performance Chart Placeholder */}
+          {/* Top Items avec barres de progression */}
           <Card>
             <CardHeader>
-              <CardTitle>Évolution des ventes</CardTitle>
+              <CardTitle>Meilleurs vendeurs</CardTitle>
               <CardDescription>
-                Graphique des ventes sur les 30 derniers jours
+                Items les plus vendus en quantité
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg">
-                <div className="text-center">
-                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Graphique en cours de développement</p>
-                  <p className="text-sm text-muted-foreground">
-                    Intégration d&apos;une bibliothèque de graphiques prévue
-                  </p>
+              {stats.topItems.length > 0 ? (
+                <div className="space-y-4">
+                  {stats.topItems.map((item, index) => {
+                    const maxQuantity = Math.max(...stats.topItems.map(i => i.quantity));
+                    const percentage = (item.quantity / maxQuantity) * 100;
+                    const color = GRADIENT_COLORS[index % GRADIENT_COLORS.length];
+                    
+                    return (
+                      <div key={item.name} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                              style={{ backgroundColor: color }}
+                            >
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium">{item.name}</p>
+                              <p className="text-sm text-muted-foreground">{item.sales} ventes</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium">{item.quantity} items</p>
+                            <p className="text-sm text-muted-foreground">
+                              {stats.totalItems > 0 ? ((item.quantity / stats.totalItems) * 100).toFixed(1) : "0"}%
+                            </p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className="h-2 rounded-full transition-all duration-500"
+                            style={{ 
+                              width: `${percentage}%`,
+                              backgroundColor: color
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune vente pour analyser les items</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Catégories avec barres colorées */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance par catégorie</CardTitle>
+              <CardDescription>
+                Analyse détaillée de vos catégories d&apos;items
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {stats.topCategories.length > 0 ? (
+                <div className="space-y-6">
+                  {stats.topCategories.map((category, index) => {
+                    const maxSales = Math.max(...stats.topCategories.map(c => c.sales));
+                    const percentage = (category.sales / maxSales) * 100;
+                    
+                    return (
+                      <div key={category.name} className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-medium text-white"
+                              style={{ backgroundColor: category.color }}
+                            >
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium text-lg">{category.name}</p>
+                              <p className="text-sm text-muted-foreground">{category.sales} ventes • {category.items} items</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-xl" style={{ color: category.color }}>
+                              {stats.totalItems > 0 ? ((category.items / stats.totalItems) * 100).toFixed(1) : "0"}%
+                            </p>
+                            <p className="text-sm text-muted-foreground">du total</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-3">
+                          <div 
+                            className="h-3 rounded-full transition-all duration-700"
+                            style={{ 
+                              width: `${percentage}%`,
+                              backgroundColor: category.color
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune vente pour analyser les catégories</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </>
