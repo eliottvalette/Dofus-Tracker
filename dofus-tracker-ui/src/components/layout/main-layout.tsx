@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { signOut, onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart, BarChart3, Users, LogOut, User as UserIcon, Menu, Play } from "lucide-react";
+import { Package, ShoppingCart, BarChart3, Users, LogOut, User as UserIcon, Menu, Play, HelpCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -78,6 +78,13 @@ export function MainLayout({ children }: MainLayoutProps) {
       icon: Play,
       description: "Vidéos tutoriels pour apprendre à utiliser l'application",
       href: "/tutorials"
+    },
+    {
+      id: "faq",
+      name: "FAQ",
+      icon: HelpCircle,
+      description: "Foire aux questions",
+      href: "/faq"
     }
   ];
 

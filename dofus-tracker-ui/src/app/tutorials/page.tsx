@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Play, Monitor, Smartphone } from "lucide-react";
+import { Play, Monitor, Smartphone, HelpCircle } from "lucide-react";
 
 export default function TutorialsPage() {
   return (
@@ -62,6 +62,35 @@ export default function TutorialsPage() {
           </CardContent>
         </Card>
       </div>
+      {/* Section Bulles Tuto */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-primary" />
+            <CardTitle>Bulles Tuto</CardTitle>
+          </div>
+          <CardDescription>
+            Des bulles d&apos;aide interactives sont disponibles dans l&apos;application
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Cliquez sur l&apos;icône <HelpCircle className="inline h-4 w-4" /> dans le coin supérieur droit des pages pour accéder aux tutoriels interactifs.
+            </p>
+            <div className="grid gap-2 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span><strong>Page Items</strong> : Comment ajouter des favoris et préparer vos ventes</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span><strong>Page Sales</strong> : Comment gérer vos ventes et le cycle de validation</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 } 
