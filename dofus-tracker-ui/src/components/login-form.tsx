@@ -39,14 +39,14 @@ export function LoginForm({
         </div>
         
         <Button type="submit" className="w-full mt-2 bg-white hover:bg-gray-200 text-gray-900 h-[40px]">
-          {isSignUp ? "Sign Up" : "Login"}
+          {isSignUp ? "Créer un compte" : "Se connecter"}
         </Button>
         <div className="relative my-4 mt-[-3px]">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-[#333333]"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-[#111111] text-gray-400">Or continue with</span>
+            <span className="px-2 bg-[#111111] text-gray-400">Ou continuer avec</span>
           </div>
         </div>
         <Button 

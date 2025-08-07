@@ -94,10 +94,10 @@ export default function LoginPage() {
         <Card className="w-full max-w-[26rem] shadow-lg border-[#262626] bg-[#111111]/90 backdrop-blur-sm">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center text-[#FAFAFA]">
-              {isSignUp ? "Sign Up" : "Login"}
+              {isSignUp ? "Créer un compte" : "Connexion"}
             </CardTitle>
             <CardDescription className="text-center text-gray-400">
-              {isSignUp ? "Create your account" : "Enter your credentials to access your account"}
+              {isSignUp ? "Rejoignez Dofus Tracker pour tracker vos ventes" : "Connectez-vous à votre compte Dofus Tracker"}
             </CardDescription>
           </CardHeader>
           <CardContent>
