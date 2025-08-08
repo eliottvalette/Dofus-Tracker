@@ -29,9 +29,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
-      if (!u) {
-        router.push('/login');
-      }
+      // Ne plus rediriger vers login - Firebase auth anonyme gère maintenant les utilisateurs non connectés
     });
     return unsubscribe;
   }, [router]);
@@ -41,7 +39,11 @@ export function MainLayout({ children }: MainLayoutProps) {
     router.replace("/login");
   };
 
-  const userName = user ? (user.displayName || (user.email ? user.email.split("@")[0] : "")) : "Guest";
+  const userName = user 
+    ? user.isAnonymous 
+      ? "Invité" 
+      : (user.displayName || (user.email ? user.email.split("@")[0] : "Utilisateur"))
+    : "Invité";
 
   const navigationItems = [
     {
@@ -126,16 +128,33 @@ export function MainLayout({ children }: MainLayoutProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {user ? (
-            <>
-              <DropdownMenuItem disabled>
-                Connecté en tant que : {user.email}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={handleLogout} className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                Déconnexion
-              </DropdownMenuItem>
-            </>
+            user.isAnonymous ? (
+              <>
+                <DropdownMenuItem disabled>
+                  Mode invité actif
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => router.push('/login?mode=signup')}>
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  Créer un compte
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => router.push('/login?mode=signin')}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Se connecter
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <>
+                <DropdownMenuItem disabled>
+                  Connecté en tant que : {user.email}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleLogout} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Déconnexion
+                </DropdownMenuItem>
+              </>
+            )
           ) : (
             <DropdownMenuItem onSelect={() => router.push('/login')}>
               Connexion

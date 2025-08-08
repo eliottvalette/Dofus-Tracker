@@ -12,6 +12,8 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { HelpDialogComponent } from "@/components/ui/help-dialog";
+import { GuestAuthDialog } from "@/components/ui/guest-auth-dialog";
+import { GUEST_FAVORITES } from "@/lib/guest-data";
 
 interface Item {
   category: string;
@@ -23,7 +25,7 @@ interface Item {
 }
 
 export default function ItemsPage() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const isMobile = useIsMobile();
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
@@ -43,6 +45,7 @@ export default function ItemsPage() {
     text: string;
   }>>([]);
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  const [guestDialogOpen, setGuestDialogOpen] = useState(false);
 
   const categories = [
     { id: "armes", name: "Armes" },
@@ -50,22 +53,6 @@ export default function ItemsPage() {
     { id: "consommables", name: "Consommables" },
     { id: "ressources", name: "Ressources" },
   ];
-
-  useEffect(() => {
-    loadAllItems();
-    if (user) {
-      loadFavorites();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    filterItems();
-  }, [allItems, searchTerm, selectedCategory, selectedType, favoriteFilter, favoriteItems]);
-
-  useEffect(() => {
-    // Mettre à jour les items affichés quand les items filtrés changent
-    setDisplayedItems(filteredItems.slice(0, itemsToShow));
-  }, [filteredItems, itemsToShow]);
 
   const loadAllItems = async () => {
     setLoading(true);
@@ -101,6 +88,16 @@ export default function ItemsPage() {
   const loadFavorites = useCallback(async () => {
     if (!user) return;
 
+    if (isGuest) {
+      // Pour les invités, charger les favoris prédéfinis
+      const guestFavoritesSet = new Set<string>();
+      GUEST_FAVORITES.forEach(fav => {
+        guestFavoritesSet.add(fav.itemName);
+      });
+      setFavoriteItems(guestFavoritesSet);
+      return;
+    }
+
     try {
       const favoritesRef = collection(db, "users", user.uid, "favorites");
       const favoritesSnapshot = await getDocs(favoritesRef);
@@ -115,10 +112,17 @@ export default function ItemsPage() {
     } catch (error) {
       console.error("Erreur lors du chargement des favoris:", error);
     }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Retrait de isGuest pour éviter les re-renders inutiles
 
   const toggleFavorite = async (item: Item, event: React.MouseEvent) => {
     if (!user) return;
+
+    // Si l'utilisateur est invité, afficher le dialog d'authentification
+    if (isGuest) {
+      setGuestDialogOpen(true);
+      return;
+    }
 
     const isCurrentlyFavorite = favoriteItems.has(item.nom);
     const notificationId = Date.now().toString();
@@ -210,15 +214,25 @@ export default function ItemsPage() {
     setItemsToShow(prev => prev + 100);
   };
 
-  if (!user) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Veuillez vous connecter pour accéder aux items</p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    loadAllItems();
+    if (user) {
+      loadFavorites();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Retrait de loadFavorites des dépendances pour éviter la boucle infinie
+
+  useEffect(() => {
+    filterItems();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allItems, searchTerm, selectedCategory, selectedType, favoriteFilter, favoriteItems]); // Retrait de filterItems pour éviter la boucle infinie
+
+  useEffect(() => {
+    // Mettre à jour les items affichés quand les items filtrés changent
+    setDisplayedItems(filteredItems.slice(0, itemsToShow));
+  }, [filteredItems, itemsToShow]);
+
+  // Plus besoin de vérifier si user existe car l'auth anonyme est maintenant activée
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -494,6 +508,14 @@ export default function ItemsPage() {
       <HelpDialogComponent 
         open={helpDialogOpen} 
         onOpenChange={setHelpDialogOpen} 
+      />
+      
+      {/* Guest Auth Dialog */}
+      <GuestAuthDialog
+        open={guestDialogOpen}
+        onOpenChange={setGuestDialogOpen}
+        title="Favoris - Compte requis"
+        description="La gestion des favoris nécessite un compte utilisateur. Créez un compte 100% gratuit pour sauvegarder vos favoris personnalisés ou continuez en mode invité avec les favoris prédéfinis."
       />
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -11,7 +11,17 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSignUp, setIsSignUp] = useState(false);
+
+  useEffect(() => {
+    const mode = searchParams?.get('mode');
+    if (mode === 'signup') {
+      setIsSignUp(true);
+    } else if (mode === 'signin') {
+      setIsSignUp(false);
+    }
+  }, [searchParams]);
 
   const toggleMode = () => setIsSignUp(prev => !prev);
 

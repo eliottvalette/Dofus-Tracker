@@ -11,6 +11,8 @@ import { collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp, Timestamp
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 import { HelpDialogComponent } from "@/components/ui/help-dialog";
+import { GuestAuthDialog } from "@/components/ui/guest-auth-dialog";
+import { GUEST_PENDING_SALES, GUEST_SOLD_SALES, GUEST_FAVORITES } from "@/lib/guest-data";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -44,7 +46,7 @@ interface Item {
 }
 
 export default function SalesPage() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [sales, setSales] = useState<SaleItem[]>([]);
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [favoriteItems, setFavoriteItems] = useState<Set<string>>(new Set());
@@ -61,51 +63,66 @@ export default function SalesPage() {
     text: string;
   }>>([]);
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  const [guestDialogOpen, setGuestDialogOpen] = useState(false);
 
   const lotSizes = [1, 10, 100, 1000];
-
-  useEffect(() => {
-    if (user) {
-      loadSales();
-      loadAllItems();
-      loadFavorites();
-    }
-  }, [user]);
 
   const loadSales = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      // Charger les ventes en cours (selling)
-      const sellingRef = collection(db, "users", user.uid, "selling");
-      const sellingSnapshot = await getDocs(sellingRef);
-      const sellingData: SaleItem[] = [];
-      sellingSnapshot.forEach((doc) => {
-        sellingData.push({ id: doc.id, ...doc.data() } as SaleItem);
-      });
+      if (isGuest) {
+        // Pour les invités, charger les données prédéfinies
+        const allSales = [...GUEST_PENDING_SALES, ...GUEST_SOLD_SALES].map(sale => ({
+          ...sale,
+          createdAt: Timestamp.fromDate(sale.createdAt),
+          soldAt: sale.soldAt ? Timestamp.fromDate(sale.soldAt) : undefined
+        }));
+        allSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setSales(allSales);
+      } else {
+        // Charger les ventes en cours (selling)
+        const sellingRef = collection(db, "users", user.uid, "selling");
+        const sellingSnapshot = await getDocs(sellingRef);
+        const sellingData: SaleItem[] = [];
+        sellingSnapshot.forEach((doc) => {
+          sellingData.push({ id: doc.id, ...doc.data() } as SaleItem);
+        });
 
-      // Charger les ventes complétées (sold)
-      const soldRef = collection(db, "users", user.uid, "sold");
-      const soldSnapshot = await getDocs(soldRef);
-      const soldData: SaleItem[] = [];
-      soldSnapshot.forEach((doc) => {
-        soldData.push({ id: doc.id, ...doc.data() } as SaleItem);
-      });
+        // Charger les ventes complétées (sold)
+        const soldRef = collection(db, "users", user.uid, "sold");
+        const soldSnapshot = await getDocs(soldRef);
+        const soldData: SaleItem[] = [];
+        soldSnapshot.forEach((doc) => {
+          soldData.push({ id: doc.id, ...doc.data() } as SaleItem);
+        });
 
-      // Combiner et trier toutes les ventes
-      const allSales = [...sellingData, ...soldData];
-      allSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setSales(allSales);
+        // Combiner et trier toutes les ventes
+        const allSales = [...sellingData, ...soldData];
+        allSales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setSales(allSales);
+      }
     } catch (error) {
       console.error("Erreur lors du chargement des ventes:", error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Retrait de isGuest pour éviter les re-renders inutiles
 
   const loadFavorites = useCallback(async () => {
     if (!user) return;
+
+    if (isGuest) {
+      // Pour les invités, charger les favoris prédéfinis
+      const guestFavoritesSet = new Set<string>();
+      GUEST_FAVORITES.forEach(fav => {
+        guestFavoritesSet.add(fav.itemName);
+      });
+      setFavoriteItems(guestFavoritesSet);
+      return;
+    }
 
     try {
       const favoritesRef = collection(db, "users", user.uid, "favorites");
@@ -121,7 +138,8 @@ export default function SalesPage() {
     } catch (error) {
       console.error("Erreur lors du chargement des favoris:", error);
     }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Retrait de isGuest pour éviter les re-renders inutiles
 
   const loadAllItems = useCallback(async () => {
     setItemsLoading(true);
@@ -165,6 +183,12 @@ export default function SalesPage() {
   const addToSales = async (item: Item, event: React.MouseEvent) => {
     if (!user) return;
 
+    // Si l'utilisateur est invité, afficher le dialog d'authentification
+    if (isGuest) {
+      setGuestDialogOpen(true);
+      return;
+    }
+
     // Créer une notification flottante
     const notificationId = Date.now().toString();
     const newNotification = {
@@ -203,6 +227,12 @@ export default function SalesPage() {
   };
 
   const toggleLocalSold = (saleId: string) => {
+    // Si l'utilisateur est invité, afficher le dialog d'authentification
+    if (isGuest) {
+      setGuestDialogOpen(true);
+      return;
+    }
+
     const sale = sales.find(s => s.id === saleId);
     if (!sale) return;
 
@@ -221,6 +251,12 @@ export default function SalesPage() {
 
   const validateAllSales = async () => {
     if (!user || localSoldItems.length === 0) return;
+
+    // Si l'utilisateur est invité, afficher le dialog d'authentification
+    if (isGuest) {
+      setGuestDialogOpen(true);
+      return;
+    }
 
     setValidatingSales(true);
     try {
@@ -264,6 +300,12 @@ export default function SalesPage() {
   };
 
   const cancelSale = async (saleId: string) => {
+    // Si l'utilisateur est invité, afficher le dialog d'authentification
+    if (isGuest) {
+      setGuestDialogOpen(true);
+      return;
+    }
+
     try {
       const saleRef = doc(db, "users", user!.uid, "selling", saleId);
       await deleteDoc(saleRef);
@@ -295,15 +337,16 @@ export default function SalesPage() {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Veuillez vous connecter pour accéder aux ventes</p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (user) {
+      loadSales();
+      loadAllItems();
+      loadFavorites();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Retrait des fonctions des dépendances pour éviter la boucle infinie
+
+  // Plus besoin de vérifier si user existe car l'auth anonyme est maintenant activée
 
   return (
     <div className="space-y-6">
@@ -703,12 +746,20 @@ export default function SalesPage() {
          </div>
        ))}
 
-       {/* Help Dialog */}
-       <HelpDialogComponent 
-         open={helpDialogOpen} 
-         onOpenChange={setHelpDialogOpen} 
-         page="sales"
-       />
-     </div>
-   );
- } 
+             {/* Help Dialog */}
+      <HelpDialogComponent 
+        open={helpDialogOpen} 
+        onOpenChange={setHelpDialogOpen} 
+        page="sales"
+      />
+
+      {/* Guest Auth Dialog */}
+      <GuestAuthDialog
+        open={guestDialogOpen}
+        onOpenChange={setGuestDialogOpen}
+        title="Ventes - Compte requis"
+        description="La gestion des ventes nécessite un compte utilisateur. Créez un compte 100% gratuit pour sauvegarder vos ventes personnalisées ou continuez en mode invité avec les données prédéfinies en lecture seule."
+      />
+    </div>
+  );
+} 

@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
+import { GUEST_SOLD_SALES } from "@/lib/guest-data";
 import { 
   BarChart, 
   Bar, 
@@ -84,7 +85,7 @@ interface StatsData {
 }
 
 export default function StatsPage() {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const [stats, setStats] = useState<StatsData>({
     totalSales: 0,
     totalItems: 0,
@@ -103,13 +104,23 @@ export default function StatsPage() {
 
     setLoading(true);
     try {
-      // Charger les ventes vendues (sold)
-      const soldRef = collection(db, "users", user.uid, "sold");
-      const soldSnapshot = await getDocs(soldRef);
-      const soldData: SaleItem[] = [];
-      soldSnapshot.forEach((doc) => {
-        soldData.push({ id: doc.id, ...doc.data() } as SaleItem);
-      });
+      let soldData: SaleItem[] = [];
+
+      if (isGuest) {
+        // Pour les invités, utiliser les données prédéfinies
+        soldData = GUEST_SOLD_SALES.map(sale => ({
+          ...sale,
+          createdAt: Timestamp.fromDate(sale.createdAt),
+          soldAt: sale.soldAt ? Timestamp.fromDate(sale.soldAt) : undefined
+        }));
+      } else {
+        // Charger les ventes vendues (sold)
+        const soldRef = collection(db, "users", user.uid, "sold");
+        const soldSnapshot = await getDocs(soldRef);
+        soldSnapshot.forEach((doc) => {
+          soldData.push({ id: doc.id, ...doc.data() } as SaleItem);
+        });
+      }
 
       // Calculer les statistiques
       const totalSales = soldData.length;
@@ -297,7 +308,8 @@ export default function StatsPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // Retrait de isGuest pour éviter les re-renders inutiles
 
   useEffect(() => {
     if (user) {
@@ -305,22 +317,17 @@ export default function StatsPage() {
     }
   }, [user, loadStats]);
 
-  if (!user) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Veuillez vous connecter pour voir vos statistiques</p>
-        </div>
-      </div>
-    );
-  }
+  // Plus besoin de vérifier si user existe car l'auth anonyme est maintenant activée
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Statistiques</h1>
         <p className="text-muted-foreground">
-          Analysez vos performances de vente et vos meilleurs vendeurs
+          {isGuest 
+            ? "Données de démonstration - Créez un compte pour voir vos vraies statistiques"
+            : "Analysez vos performances de vente et vos meilleurs vendeurs"
+          }
         </p>
       </div>
 

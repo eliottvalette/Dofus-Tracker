@@ -12,4 +12,5 @@ https://youtube.com/shorts/v51UyrIDlig?feature=share
 - Recherche items -> Urgent filtre par sous-catégorie
 - Recherche items -> TODO Filtre par craft, métiers zone etc...
 - Statistique -> Urgent : embellir, mettre des graphs etc...
-- 
+- Statistique Max period / 1an / 3 mois / 1 mois / 1 semaine
+- Mode Invité

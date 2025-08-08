@@ -4,7 +4,7 @@ import './firebase'; // force l'initialisation de Firebase
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { getApp } from 'firebase/app';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { User, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { auth } from './firebase';
 
 // Créer un contexte pour l'application Firebase
@@ -25,15 +25,35 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // Si aucun utilisateur n'est connecté, connecter automatiquement en mode anonyme
+        try {
+          await signInAnonymously(auth);
+        } catch (error) {
+          console.error("Erreur lors de la connexion anonyme:", error);
+          setUser(null);
+          setLoading(false);
+        }
+      } else {
+        setUser(user);
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
   }, []);
 
-  return { user, loading };
+  const isGuest = user?.isAnonymous || false;
+  const signInAsGuest = async () => {
+    try {
+      await signInAnonymously(auth);
+    } catch (error) {
+      console.error("Erreur lors de la connexion anonyme:", error);
+    }
+  };
+
+  return { user, loading, isGuest, signInAsGuest };
 };
 
 // Composant Provider pour le contexte Firebase
