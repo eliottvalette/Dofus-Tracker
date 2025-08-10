@@ -33,7 +33,8 @@ export default function ItemsPage() {
   const [favoriteItems, setFavoriteItems] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedType] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [favoriteFilter, setFavoriteFilter] = useState<"all" | "favorites" | "not-favorites">("all");
   const [loading, setLoading] = useState(true);
@@ -53,6 +54,44 @@ export default function ItemsPage() {
     { id: "consommables", name: "Consommables" },
     { id: "ressources", name: "Ressources" },
   ];
+
+  // Types par catégorie (hardcodés pour un meilleur UX)
+  const getAvailableTypes = () => {
+    const typesByCategory = {
+      armes: [
+        "Arc", "Arme Légendaire", "Baguette", "Bâton", "Dague", 
+        "Faux", "Hache", "Marteau", "Outil", "Pelle", "Pioche", "Épée"
+      ],
+      equipements: [
+        "Amulette", "Anneau", "Bottes", "Bouclier", "Cape", 
+        "Ceinture", "Chapeau", "Dofus", "Emblème de Maîtrise", "Sac à dos", "Trophée"
+      ],
+      consommables: [
+        "Bière", "Boisson", "Friandise", "Fée d'artifice", "Mimibiote", 
+        "Objet d'élevage", "Objet utilisable", "Oeuf de familier", "Pain", 
+        "Parchemin d'Appellation", "Parchemin d'attitude", "Parchemin d'expérience", 
+        "Parchemin de caractéristique", "Parchemin de recherche", "Parchemin de sortilège", 
+        "Pierre magique", "Poisson comestible", "Potion", "Potion Cosmétique", 
+        "Potion d'oubli Percepteur", "Potion d'oubli de métier", "Potion d'oubli de sort", 
+        "Potion de conquête", "Potion de téléportation", "Viande comestible"
+      ],
+      ressources: [
+        "Aile", "Alliage", "Bois", "Bourgeon", "Carapace", "Champignon", 
+        "Clef", "Coquille", "Coupons", "Cuir", "Céréale", "Emballage", 
+        "Essence de gardien de donjon", "Etoffe", "Fantôme de Familier", 
+        "Fantôme de Montilier", "Farine", "Fleur", "Fruit", "Galet", 
+        "Gelée", "Graine", "Huile", "Laine", "Légume", "Matériau d'Éveil", 
+        "Matériel d'alchimie", "Metaria", "Minerai", "Nowel", "Oeil", 
+        "Oeuf", "Oreille", "Os", "Patte", "Peau", "Peluche", "Pierre brute", 
+        "Pierre précieuse", "Planche", "Plante", "Plume", "Poil", "Poisson", 
+        "Poisson vidé", "Potion de forgemagie", "Poudre", "Queue", "Racine", 
+        "Ressources diverses", "Rune de forgemagie", "Souvenir", "Teinture", 
+        "Viande", "Viande conservée", "Vêtement", "Écorce"
+      ]
+    };
+    
+    return selectedCategory ? typesByCategory[selectedCategory as keyof typeof typesByCategory] || [] : [];
+  };
 
   const loadAllItems = async () => {
     setLoading(true);
@@ -189,15 +228,15 @@ export default function ItemsPage() {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
 
+    if (selectedType) {
+      filtered = filtered.filter(item => item.type === selectedType);
+    }
+
     if (searchTerm) {
       filtered = filtered.filter(item =>
         item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.type.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    }
-
-    if (selectedType) {
-      filtered = filtered.filter(item => item.type === selectedType);
     }
 
     // Filtre des favoris
@@ -232,6 +271,11 @@ export default function ItemsPage() {
     setDisplayedItems(filteredItems.slice(0, itemsToShow));
   }, [filteredItems, itemsToShow]);
 
+  // Reset du type quand on change de catégorie
+  useEffect(() => {
+    setSelectedType("");
+  }, [selectedCategory]);
+
   // Plus besoin de vérifier si user existe car l'auth anonyme est maintenant activée
 
   return (
@@ -254,8 +298,8 @@ export default function ItemsPage() {
       ))}
 
       {/* Search and Filters */}
-      <Card>
-        <CardHeader className="pb-4 relative">
+      <Card className="gap-2">
+        <CardHeader className="relative">
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="text-lg md:text-xl">Recherche et filtres</CardTitle>
@@ -365,6 +409,39 @@ export default function ItemsPage() {
               </Badge>
             ))}
           </div>
+
+          {/* Types (Sous-catégories) */}
+          {selectedCategory && getAvailableTypes().length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Types
+              </label>
+              <div className="border rounded-md overflow-hidden mt-2">
+                <ScrollArea className="h-[120px]">
+                  <div className="p-2 flex flex-wrap gap-2">
+                    <Badge 
+                      variant={selectedType === "" ? "default" : "outline"}
+                      className="cursor-pointer h-7 flex-shrink-0"
+                      onClick={() => setSelectedType("")}
+                    >
+                      Tous
+                    </Badge>
+                    {getAvailableTypes().map((type) => (
+                      <Badge 
+                        key={type}
+                        variant={selectedType === type ? "default" : "outline"}
+                        className="cursor-pointer h-7 hover:bg-accent text-xs flex-shrink-0 whitespace-nowrap"
+                        onClick={() => setSelectedType(type)}
+                        title={type}
+                      >
+                        {type}
+                      </Badge>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -416,7 +493,7 @@ export default function ItemsPage() {
                               <p className="text-sm font-medium truncate">{item.nom}</p>
                               <div className="flex items-center gap-1 mt-1">
                                 <Badge variant="secondary" className="text-xs">
-                                  {item.type}
+                                  {item.type === "Essence de gardien de donjon" ? "Essence de Gardien" : item.type}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
                                   {item.niveau}

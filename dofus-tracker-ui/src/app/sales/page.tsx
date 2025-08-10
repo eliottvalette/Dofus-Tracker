@@ -336,6 +336,24 @@ export default function SalesPage() {
       default: return "Inconnu";
     }
   };
+  
+  const formatSaleTime = (saleDate: string, soldDate?: string) => {
+    if (!soldDate) return "";
+    
+    const start = new Date(saleDate).getTime();
+    const end = new Date(soldDate).getTime();
+    const diffMs = end - start;
+    
+    // Convertir en jours et heures
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    
+    if (days > 0) {
+      return `Vendu en ${days}j ${hours}h`;
+    } else {
+      return `Vendu en ${hours}h`;
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -473,7 +491,7 @@ export default function SalesPage() {
                               <p className="text-sm font-medium truncate">{item.nom}</p>
                               <div className="flex items-center gap-2 mt-1">
                                 <Badge variant="secondary" className="text-xs border border-popover">
-                                  {item.type}
+                                  {item.type === "Essence de gardien de donjon" ? "Essence de Gardien" : item.type}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
                                   {item.niveau}
@@ -591,7 +609,7 @@ export default function SalesPage() {
                         <ContextMenu key={sale.id}>
                           <ContextMenuTrigger>
                             <Card 
-                              className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer"
+                              className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer h-25 py-0 justify-center"
                               onClick={() => toggleLocalSold(sale.id)}
                             >
                               <CardContent className="px-4 select-none">
@@ -612,17 +630,15 @@ export default function SalesPage() {
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                      <p className="text-sm font-medium truncate">{sale.itemName}</p>
+                                      <p className="text-sm font-medium break-words">{sale.itemName}</p>
                                       <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
                                     </div>
                                     <div className="flex items-center gap-2 mb-2">
                                       <Badge className={getStatusColor(sale.status)}>
                                         {getStatusText(sale.status)}
                                       </Badge>
-                                      <p className="text-xs text-muted-foreground">
-                                        {new Date(sale.date).toLocaleDateString()}
-                                      </p>
                                     </div>
+                                    
                                   </div>
                                 </div>
                               </CardContent>
@@ -681,7 +697,7 @@ export default function SalesPage() {
                     {sales.filter(sale => sale.status === "sold").map((sale) => (
                       <Card 
                         key={sale.id} 
-                        className="hover:shadow-lg hover:bg-secondary transition-all"
+                        className="hover:shadow-lg hover:bg-secondary transition-all h-25 py-0 justify-center"
                       >
                         <CardContent className="px-4 select-none">
                           <div className="flex items-center space-x-3">
@@ -701,22 +717,19 @@ export default function SalesPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <p className="text-sm font-medium truncate">{sale.itemName}</p>
+                                <p className="text-sm font-medium break-words">{sale.itemName}</p>
                                 <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
                               </div>
                               <div className="flex items-center gap-2 mb-2">
                                 <Badge className={getStatusColor(sale.status)}>
                                   {getStatusText(sale.status)}
                                 </Badge>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(sale.date).toLocaleDateString()}
-                                </p>
+                                {sale.soldDate && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {formatSaleTime(sale.date, sale.soldDate)}
+                                  </p>
+                                )}
                               </div>
-                              {sale.soldDate && (
-                                <p className="text-xs text-muted-foreground">
-                                  Vendue le {new Date(sale.soldDate).toLocaleDateString()}
-                                </p>
-                              )}
                             </div>
                           </div>
                         </CardContent>
