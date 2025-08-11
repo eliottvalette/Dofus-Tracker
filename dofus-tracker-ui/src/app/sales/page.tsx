@@ -3,11 +3,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, TrendingUp, ShoppingCart, CheckCircle, XCircle, Check, Heart, HelpCircle } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { collection, addDoc, getDocs, doc, deleteDoc, serverTimestamp, Timestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 import { HelpDialogComponent } from "@/components/ui/help-dialog";
@@ -51,6 +52,9 @@ export default function SalesPage() {
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [favoriteItems, setFavoriteItems] = useState<Set<string>>(new Set());
   const [selectedLotSize, setSelectedLotSize] = useState<number>(1);
+  const [priceBadges, setPriceBadges] = useState<Array<{id: string; label: string; price: number}>>([]);
+  const [selectedPriceBadge, setSelectedPriceBadge] = useState<string | null>(null);
+  const [newPriceBadgeInput, setNewPriceBadgeInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [itemsLoading, setItemsLoading] = useState(true);
   const [localSoldItems, setLocalSoldItems] = useState<SaleItem[]>([]);
@@ -355,6 +359,43 @@ export default function SalesPage() {
     }
   };
 
+  const createPriceBadge = () => {
+    if (!newPriceBadgeInput.trim()) return;
+    
+    const price = parseFloat(newPriceBadgeInput);
+    if (isNaN(price) || price < 0) return;
+    
+    const newBadge = {
+      id: Date.now().toString(),
+      label: `${price.toLocaleString()} K`,
+      price: price
+    };
+    
+    setPriceBadges(prev => [...prev, newBadge]);
+    setNewPriceBadgeInput("");
+  };
+
+  const applyPriceBadgeToSale = async (saleId: string) => {
+    if (!selectedPriceBadge || !user || isGuest) return;
+    
+    const badge = priceBadges.find(b => b.id === selectedPriceBadge);
+    if (!badge) return;
+
+    try {
+      // Mettre à jour dans la liste locale
+      setSales(prev => prev.map(sale => 
+        sale.id === saleId ? { ...sale, price: badge.price } : sale
+      ));
+      
+      // Mettre à jour dans Firebase
+      const saleRef = doc(db, "users", user.uid, "selling", saleId);
+      await updateDoc(saleRef, { price: badge.price });
+      
+    } catch (error) {
+      console.error("Erreur lors de l'application du prix:", error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadSales();
@@ -522,29 +563,75 @@ export default function SalesPage() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Ventes en cours ({pendingSales + localSoldCount})
-                {localSoldCount > 0 && (
-                  <Button 
-                    onClick={validateAllSales}
-                    disabled={validatingSales}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    size="sm"
-                  >
-                    {validatingSales ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
-                        Validation en cours...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4 mr-2" />
-                        Valider ({localSoldCount})
-                      </>
-                    )}
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  {/* Interface badges de prix */}
+                  <div className="flex items-center gap-2">
+                    {/* Badges créés à côté de l'input */}
+                     {priceBadges.map((badge) => (
+                       <Badge
+                         key={badge.id}
+                         variant={selectedPriceBadge === badge.id ? "default" : "outline"}
+                         className="cursor-pointer h-8 px-3 border-[1.5px]"
+                         style={selectedPriceBadge === badge.id ? {
+                           backgroundColor: 'var(--kamas-color)',
+                           color: '#000000',
+                           borderColor: 'var(--kamas-color)'
+                         } : {
+                           borderColor: 'var(--kamas-color)',
+                           color: 'var(--kamas-color)',
+                           backgroundColor: 'transparent'
+                         }}
+                         onClick={() => setSelectedPriceBadge(selectedPriceBadge === badge.id ? null : badge.id)}
+                       >
+                         {badge.label}
+                       </Badge>
+                     ))}
+
+                    {/* Input pour créer un badge */}
+                    <Input
+                      placeholder="Créer un badge de prix (ex: 1000)"
+                      value={newPriceBadgeInput}
+                      onChange={(e) => setNewPriceBadgeInput(e.target.value)}
+                      className="w-48 h-8"
+                      type="number"
+                      onKeyDown={(e) => e.key === "Enter" && createPriceBadge()}
+                    />
+                    <Button 
+                      onClick={createPriceBadge}
+                      size="sm"
+                      variant="outline"
+                      className="h-8"
+                    >
+                      +
+                    </Button>
+                  </div>
+                  
+                  {localSoldCount > 0 && (
+                    <Button 
+                      onClick={validateAllSales}
+                      disabled={validatingSales}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      size="sm"
+                    >
+                      {validatingSales ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                          Validation en cours...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Valider ({localSoldCount})
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </CardTitle>
               <CardDescription>
-                Cliquez sur une carte pour la marquer comme vendue
+                {selectedPriceBadge ? 
+                  "Cliquez sur un item pour appliquer le prix sélectionné" : 
+                  "Cliquez sur une carte pour la marquer comme vendue"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -569,8 +656,14 @@ export default function SalesPage() {
                       {localSoldItems.map((sale) => (
                         <Card 
                           key={sale.id} 
-                          className="hover:shadow-lg hover:bg-accent transition-all cursor-pointer border-primary/20"
-                          onClick={() => toggleLocalSold(sale.id)}
+                          className="hover:shadow-lg hover:bg-accent transition-all cursor-pointer border-primary/20 relative"
+                          onClick={() => {
+                            if (selectedPriceBadge) {
+                              applyPriceBadgeToSale(sale.id);
+                            } else {
+                              toggleLocalSold(sale.id);
+                            }
+                          }}
                         >
                           <CardContent className="px-4 select-none">
                             <div className="flex items-center space-x-3">
@@ -601,6 +694,21 @@ export default function SalesPage() {
                               </div>
                             </div>
                           </CardContent>
+                          {/* Badge de prix dans l'angle */}
+                          {sale.price > 0 && (
+                            <div className="absolute bottom-2 right-2">
+                              <Badge 
+                                variant="secondary" 
+                                className="text-xs"
+                                style={{
+                                  backgroundColor: 'var(--kamas-color)',
+                                  color: '#000000'
+                                }}
+                              >
+                                {sale.price.toLocaleString()} K
+                              </Badge>
+                            </div>
+                          )}
                         </Card>
                       ))}
                       
@@ -609,8 +717,14 @@ export default function SalesPage() {
                         <ContextMenu key={sale.id}>
                           <ContextMenuTrigger>
                             <Card 
-                              className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer h-25 py-0 justify-center"
-                              onClick={() => toggleLocalSold(sale.id)}
+                              className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer h-25 py-0 justify-center relative"
+                              onClick={() => {
+                                if (selectedPriceBadge) {
+                                  applyPriceBadgeToSale(sale.id);
+                                } else {
+                                  toggleLocalSold(sale.id);
+                                }
+                              }}
                             >
                               <CardContent className="px-4 select-none">
                                 <div className="flex items-center space-x-3">
@@ -642,6 +756,21 @@ export default function SalesPage() {
                                   </div>
                                 </div>
                               </CardContent>
+                              {/* Badge de prix dans l'angle */}
+                              {sale.price > 0 && (
+                                <div className="absolute bottom-2 right-2">
+                                  <Badge 
+                                    variant="secondary" 
+                                    className="text-xs"
+                                    style={{
+                                      backgroundColor: 'var(--kamas-color)',
+                                      color: '#000000'
+                                    }}
+                                  >
+                                    {sale.price.toLocaleString()} K
+                                  </Badge>
+                                </div>
+                              )}
                             </Card>
                           </ContextMenuTrigger>
                           <ContextMenuContent>
