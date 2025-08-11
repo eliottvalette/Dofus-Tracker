@@ -3,12 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BarChart3, Package, Activity, Loader2, Clock, Target, PieChart } from "lucide-react";
+import { BarChart3, Package, Activity, Loader2, Clock, Target, PieChart, Calendar, TrendingUp } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 import { GUEST_SOLD_SALES } from "@/lib/guest-data";
+import { Button } from "@/components/ui/button";
 import { 
   BarChart, 
   Bar, 
@@ -82,7 +83,21 @@ interface StatsData {
     sales: number;
     items: number;
   }>;
+  fastestSellers: Array<{
+    name: string;
+    averageSaleTime: number;
+    sales: number;
+  }>;
+  bestDaysByItem: Array<{
+    item: string;
+    bestDay: string;
+    salesOnBestDay: number;
+    dayOfWeek: string;
+    dayOfWeekNumber: number;
+  }>;
 }
+
+type PeriodFilter = "1week" | "1month" | "3months" | "1year" | "all";
 
 export default function StatsPage() {
   const { user, isGuest } = useAuth();
@@ -95,9 +110,50 @@ export default function StatsPage() {
     topTypesByCategory: [],
     recentActivity: [],
     saleTimeDistribution: [],
-    salesTrend: []
+    salesTrend: [],
+    fastestSellers: [],
+    bestDaysByItem: []
   });
   const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>("all");
+
+  const filterSalesByPeriod = (sales: SaleItem[], period: PeriodFilter): SaleItem[] => {
+    if (period === "all") return sales;
+    
+    const now = new Date();
+    let cutoffDate: Date;
+    
+    switch (period) {
+      case "1week":
+        cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case "1month":
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case "3months":
+        cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case "1year":
+        cutoffDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return sales;
+    }
+    
+    return sales.filter(sale => {
+      // Utiliser les timestamps Firebase si disponibles, sinon fallback sur les dates string
+      let saleDate: Date;
+      if (sale.soldAt) {
+        saleDate = sale.soldAt.toDate();
+      } else if (sale.soldDate) {
+        saleDate = new Date(sale.soldDate);
+      } else {
+        saleDate = new Date(sale.date);
+      }
+      
+      return saleDate >= cutoffDate;
+    });
+  };
 
   const loadStats = useCallback(async () => {
     if (!user) return;
@@ -122,14 +178,17 @@ export default function StatsPage() {
         });
       }
 
+      // Appliquer le filtre de période
+      const filteredSoldData = filterSalesByPeriod(soldData, selectedPeriod);
+
       // Calculer les statistiques
-      const totalSales = soldData.length;
-      const totalItems = soldData.reduce((sum, sale) => sum + sale.quantity, 0);
+      const totalSales = filteredSoldData.length;
+      const totalItems = filteredSoldData.reduce((sum, sale) => sum + sale.quantity, 0);
 
       // Calculer le délai de vente moyen
       let totalSaleTime = 0;
       let validSales = 0;
-      soldData.forEach(sale => {
+      filteredSoldData.forEach(sale => {
         // Utiliser les timestamps Firebase si disponibles, sinon fallback sur les dates string
         let saleDate: Date;
         let listDate: Date;
@@ -156,7 +215,7 @@ export default function StatsPage() {
 
       // Analyser les catégories (basé sur le nom de l'item)
       const categoryMap = new Map<string, { sales: number; items: number }>();
-      soldData.forEach(sale => {
+      filteredSoldData.forEach(sale => {
         // Déterminer la catégorie basée sur le nom de l'item
         const current = categoryMap.get(sale.category) || { sales: 0, items: 0 };
         categoryMap.set(sale.category, {
@@ -176,7 +235,7 @@ export default function StatsPage() {
 
       // Analyser les items les plus vendus
       const itemMap = new Map<string, { sales: number; quantity: number }>();
-      soldData.forEach(sale => {
+      filteredSoldData.forEach(sale => {
         const current = itemMap.get(sale.itemName) || { sales: 0, quantity: 0 };
         itemMap.set(sale.itemName, {
           sales: current.sales + 1,
@@ -191,7 +250,7 @@ export default function StatsPage() {
 
       // Analyser les types les plus vendus par catégorie
       const typeMap = new Map<string, Map<string, { sales: number; items: number }>>();
-      soldData.forEach(sale => {
+      filteredSoldData.forEach(sale => {
         const categoryTypes = typeMap.get(sale.category) || new Map<string, { sales: number; items: number }>();
         const currentType = categoryTypes.get(sale.type) || { sales: 0, items: 0 };
         categoryTypes.set(sale.type, {
@@ -215,7 +274,7 @@ export default function StatsPage() {
       });
 
       // Activité récente (dernières 10 ventes)
-      const recentActivity = soldData
+      const recentActivity = filteredSoldData
         .sort((a, b) => {
           // Utiliser les timestamps Firebase pour le tri si disponibles
           let dateA: Date, dateB: Date;
@@ -268,7 +327,7 @@ export default function StatsPage() {
         { range: "> 7j", count: 0, color: '#8b5cf6' }
       ];
 
-      soldData.forEach(sale => {
+      filteredSoldData.forEach(sale => {
         // Utiliser les timestamps Firebase si disponibles, sinon fallback sur les dates string
         let saleDate: Date, listDate: Date;
         
@@ -292,6 +351,91 @@ export default function StatsPage() {
         else saleTimeDistribution[4].count++;
       });
 
+      // Calculer les items qui se vendent le plus rapidement
+      const itemSaleTimeMap = new Map<string, { totalTime: number; sales: number }>();
+      filteredSoldData.forEach(sale => {
+        // Utiliser les timestamps Firebase si disponibles, sinon fallback sur les dates string
+        let saleDate: Date, listDate: Date;
+        
+        if (sale.soldAt && sale.createdAt) {
+          saleDate = sale.soldAt.toDate();
+          listDate = sale.createdAt.toDate();
+        } else if (sale.soldDate && sale.date) {
+          saleDate = new Date(sale.soldDate);
+          listDate = new Date(sale.date);
+        } else {
+          return; // Ignorer si pas de dates valides
+        }
+        
+        const timeDiff = saleDate.getTime() - listDate.getTime();
+        if (timeDiff > 0) {
+          const current = itemSaleTimeMap.get(sale.itemName) || { totalTime: 0, sales: 0 };
+          itemSaleTimeMap.set(sale.itemName, {
+            totalTime: current.totalTime + timeDiff,
+            sales: current.sales + 1
+          });
+        }
+      });
+
+      const fastestSellers = Array.from(itemSaleTimeMap.entries())
+        .filter(([, data]) => data.sales >= 2) // Au moins 2 ventes pour être considéré
+        .map(([name, data]) => ({
+          name,
+          averageSaleTime: data.totalTime / data.sales / (1000 * 60 * 60), // en heures
+          sales: data.sales
+        }))
+        .sort((a, b) => a.averageSaleTime - b.averageSaleTime)
+        .slice(0, 10);
+
+      // Analyser les meilleurs jours de vente par item
+      const itemDayMap = new Map<string, Map<string, number>>();
+      filteredSoldData.forEach(sale => {
+        // Utiliser les timestamps Firebase si disponibles
+        let saleDate: Date;
+        if (sale.soldAt) {
+          saleDate = sale.soldAt.toDate();
+        } else if (sale.soldDate) {
+          saleDate = new Date(sale.soldDate);
+        } else {
+          saleDate = new Date(sale.date);
+        }
+        
+        const dateStr = saleDate.toDateString();
+        
+        const itemDays = itemDayMap.get(sale.itemName) || new Map<string, number>();
+        const currentCount = itemDays.get(dateStr) || 0;
+        itemDays.set(dateStr, currentCount + 1);
+        itemDayMap.set(sale.itemName, itemDays);
+      });
+
+      const bestDaysByItem = Array.from(itemDayMap.entries())
+        .filter(([, dayMap]) => dayMap.size > 0)
+        .map(([item, dayMap]) => {
+          const bestEntry = Array.from(dayMap.entries())
+            .sort((a, b) => b[1] - a[1])[0];
+          
+          if (!bestEntry) return null;
+          
+          const bestDate = new Date(bestEntry[0]);
+          const dayOfWeek = bestDate.toLocaleDateString('fr-FR', { weekday: 'long' });
+          
+          return {
+            item,
+            bestDay: bestDate.toLocaleDateString('fr-FR'),
+            salesOnBestDay: bestEntry[1],
+            dayOfWeek: dayOfWeek,
+            dayOfWeekNumber: bestDate.getDay() // 0 = Dimanche, 1 = Lundi, etc.
+          };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null)
+        .sort((a, b) => {
+          // Convertir dimanche (0) en 7 pour avoir lundi = 1, dimanche = 7
+          const dayA = a.dayOfWeekNumber === 0 ? 7 : a.dayOfWeekNumber;
+          const dayB = b.dayOfWeekNumber === 0 ? 7 : b.dayOfWeekNumber;
+          return dayA - dayB;
+        })
+        .slice(0, 50); // Augmenter la limite pour voir plus d'items
+
       setStats({
         totalSales,
         totalItems,
@@ -301,7 +445,9 @@ export default function StatsPage() {
         topTypesByCategory,
         recentActivity,
         saleTimeDistribution,
-        salesTrend: []
+        salesTrend: [],
+        fastestSellers,
+        bestDaysByItem
       });
     } catch (error) {
       console.error("Erreur lors du chargement des statistiques:", error);
@@ -309,7 +455,7 @@ export default function StatsPage() {
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]); // Retrait de isGuest pour éviter les re-renders inutiles
+  }, [user, selectedPeriod]); // Ajouter selectedPeriod aux dépendances
 
   useEffect(() => {
     if (user) {
@@ -319,8 +465,17 @@ export default function StatsPage() {
 
   // Plus besoin de vérifier si user existe car l'auth anonyme est maintenant activée
 
+  const periodLabels = {
+    "1week": "1 semaine",
+    "1month": "1 mois", 
+    "3months": "3 mois",
+    "1year": "1 an",
+    "all": "Toutes"
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex items-start justify-between">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Statistiques</h1>
         <p className="text-muted-foreground">
@@ -329,6 +484,24 @@ export default function StatsPage() {
             : "Analysez vos performances de vente et vos meilleurs vendeurs"
           }
         </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Période:</span>
+          <div className="flex gap-1">
+            {(Object.keys(periodLabels) as PeriodFilter[]).map((period) => (
+              <Button
+                key={period}
+                variant={selectedPeriod === period ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedPeriod(period)}
+                className="h-8"
+              >
+                {periodLabels[period]}
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -390,56 +563,176 @@ export default function StatsPage() {
             </Card>
           </div>
 
-          {/* Graphiques principaux */}
+          {/* Items qui se vendent le plus rapidement */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Items les plus rapides à vendre
+              </CardTitle>
+              <CardDescription>
+                Items avec le délai de vente moyen le plus court (minimum 2 ventes)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {stats.fastestSellers.length > 0 ? (
+                <div className="space-y-4">
+                  {stats.fastestSellers.map((item, index) => {
+                    const color = GRADIENT_COLORS[index % GRADIENT_COLORS.length];
+                    const maxTime = Math.max(...stats.fastestSellers.map(i => i.averageSaleTime));
+                    const percentage = maxTime > 0 ? (item.averageSaleTime / maxTime) * 100 : 0;
+                    
+                    return (
+                      <div key={item.name} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                              style={{ backgroundColor: color }}
+                            >
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-medium">{item.name}</p>
+                              <p className="text-sm text-muted-foreground">{item.sales} ventes</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-green-600">
+                              {item.averageSaleTime < 1 
+                                ? `${(item.averageSaleTime * 60).toFixed(0)}min`
+                                : item.averageSaleTime < 24
+                                  ? `${item.averageSaleTime.toFixed(1)}h`
+                                  : `${(item.averageSaleTime / 24).toFixed(1)}j`
+                              }
+                            </p>
+                            <p className="text-sm text-muted-foreground">temps moyen</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className="h-2 rounded-full transition-all duration-500"
+                            style={{ 
+                              width: `${percentage}%`,
+                              backgroundColor: color
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Pas assez de données pour analyser la vitesse de vente</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Il faut au moins 2 ventes par item pour calculer le temps moyen
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Graphiques */}
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Graphique en barres des catégories */}
+            {/* Meilleurs jours de vente par item */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                  Ventes par catégorie
-                </CardTitle>
-                <CardDescription>
-                  Performance de vos différentes catégories d&apos;items
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {stats.topCategories.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={stats.topCategories}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        tick={{ fontSize: 12 }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
-                      />
-                      <YAxis />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--background)', 
-                          border: '1px solid var(--border)',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Bar dataKey="sales" radius={[4, 4, 0, 0]}>
-                        {stats.topCategories.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-[300px] flex items-center justify-center">
-                    <div className="text-center">
-                      <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Aucune donnée disponible</p>
-                    </div>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                Meilleurs jours de vente par item
+              </CardTitle>
+              <CardDescription>
+                Jours où chaque item a le plus vendu
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {stats.bestDaysByItem.length > 0 ? (
+                <ScrollArea className="h-[400px]">
+                  <div className="space-y-6">
+                    {(() => {
+                      // Grouper les items par jour de la semaine
+                      const groupedByDay = stats.bestDaysByItem.reduce((acc, item) => {
+                        const day = item.dayOfWeek;
+                        if (!acc[day]) acc[day] = [];
+                        acc[day].push(item);
+                        return acc;
+                      }, {} as Record<string, typeof stats.bestDaysByItem>);
+
+                      const daysOrder = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+                      const maxSales = Math.max(...stats.bestDaysByItem.map(i => i.salesOnBestDay));
+
+                      return daysOrder.map((dayName) => {
+                        const items = groupedByDay[dayName] || [];
+                        if (items.length === 0) return null;
+
+                        return (
+                          <div key={dayName} className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-semibold capitalize text-primary">{dayName}</h3>
+                              <Badge variant="secondary" className="text-xs">
+                                {items.length} item{items.length > 1 ? 's' : ''}
+                              </Badge>
+                            </div>
+                            <div className="space-y-2 pl-4 border-l-2 border-primary/20">
+                              {items.map((item, index) => {
+                                const color = GRADIENT_COLORS[(dayName.charCodeAt(0) + index) % GRADIENT_COLORS.length];
+                                const percentage = maxSales > 0 ? (item.salesOnBestDay / maxSales) * 100 : 0;
+                                
+                                return (
+                                  <div key={item.item} className="space-y-2 p-3 rounded-lg border bg-card">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3">
+                                        <div 
+                                          className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium text-white"
+                                          style={{ backgroundColor: color }}
+                                        >
+                                          {item.salesOnBestDay}
+                                        </div>
+                                        <div>
+                                          <p className="font-medium text-sm">{item.item}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {item.bestDay}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-sm text-muted-foreground">
+                                          {item.salesOnBestDay} vente{item.salesOnBestDay > 1 ? 's' : ''}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="w-full bg-muted rounded-full h-1.5">
+                                      <div 
+                                        className="h-1.5 rounded-full transition-all duration-500"
+                                        style={{ 
+                                          width: `${percentage}%`,
+                                          backgroundColor: color
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }).filter(Boolean);
+                    })()}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </ScrollArea>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune donnée pour analyser les meilleurs jours</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Vendez des items pour voir les tendances par jour
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
             {/* Graphique en secteurs des délais de vente */}
             <Card>
@@ -491,57 +784,13 @@ export default function StatsPage() {
             </Card>
           </div>
 
-          {/* Recent Activity avec couleurs */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Activité récente</CardTitle>
-              <CardDescription>
-                Vos dernières transactions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {stats.recentActivity.length > 0 ? (
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-4">
-                    {stats.recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border-l-4 border-l-primary bg-accent">
-                        <div className="flex items-center gap-3">
-                          <div className="w-3 h-3 rounded-full bg-primary" />
-                          <div>
-                            <p className="font-medium">{activity.item}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Vente • {activity.time}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">{activity.quantity} items</p>
-                          <Badge variant="default" className="bg-primary hover:bg-green-600">
-                            Vente
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              ) : (
-                <div className="text-center py-8">
-                  <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Aucune activité récente</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Vendez des items pour voir votre activité
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Top Items avec barres de progression */}
           <Card>
             <CardHeader>
-              <CardTitle>Meilleurs vendeurs</CardTitle>
+              <CardTitle>Items les plus vendus </CardTitle>
               <CardDescription>
-                Items les plus vendus en quantité
+                En quantité et en pourcentage du total
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -595,61 +844,46 @@ export default function StatsPage() {
               )}
             </CardContent>
           </Card>
-
-          {/* Catégories avec barres colorées */}
+          {/* Recent Activity avec couleurs */}
           <Card>
             <CardHeader>
-              <CardTitle>Performance par catégorie</CardTitle>
+              <CardTitle>Activité récente</CardTitle>
               <CardDescription>
-                Analyse détaillée de vos catégories d&apos;items
+                Vos dernières transactions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {stats.topCategories.length > 0 ? (
-                <div className="space-y-6">
-                  {stats.topCategories.map((category, index) => {
-                    const maxSales = Math.max(...stats.topCategories.map(c => c.sales));
-                    const percentage = (category.sales / maxSales) * 100;
-                    
-                    return (
-                      <div key={category.name} className="space-y-3">
-                        <div className="flex items-center justify-between">
+              {stats.recentActivity.length > 0 ? (
+                <ScrollArea className="h-[300px]">
+                  <div className="space-y-4">
+                    {stats.recentActivity.map((activity, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg border-l-4 border-l-primary bg-accent">
                           <div className="flex items-center gap-3">
-                            <div 
-                              className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-medium text-white"
-                              style={{ backgroundColor: category.color }}
-                            >
-                              {index + 1}
-                            </div>
+                          <div className="w-3 h-3 rounded-full bg-primary" />
                             <div>
-                              <p className="font-medium text-lg">{category.name}</p>
-                              <p className="text-sm text-muted-foreground">{category.sales} ventes • {category.items} items</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-xl" style={{ color: category.color }}>
-                              {stats.totalItems > 0 ? ((category.items / stats.totalItems) * 100).toFixed(1) : "0"}%
+                            <p className="font-medium">{activity.item}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Vente • {activity.time}
                             </p>
-                            <p className="text-sm text-muted-foreground">du total</p>
                           </div>
                         </div>
-                        <div className="w-full bg-muted rounded-full h-3">
-                          <div 
-                            className="h-3 rounded-full transition-all duration-700"
-                            style={{ 
-                              width: `${percentage}%`,
-                              backgroundColor: category.color
-                            }}
-                          />
+                        <div className="text-right">
+                          <p className="font-medium">{activity.quantity} items</p>
+                          <Badge variant="default" className="bg-primary hover:bg-green-600">
+                            Vente
+                          </Badge>
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
                 </div>
+                </ScrollArea>
               ) : (
                 <div className="text-center py-8">
-                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Aucune vente pour analyser les catégories</p>
+                  <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune activité récente</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Vendez des items pour voir votre activité
+                  </p>
                 </div>
               )}
             </CardContent>
