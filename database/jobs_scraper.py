@@ -4,6 +4,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from pathlib import Path
 import time
+import json
 
 def fetch_jobs_page(page_num):
     """Récupère une page de métiers si elle n'existe pas déjà"""
@@ -232,6 +233,28 @@ def scrape_all_jobs():
     
     return all_jobs, all_job_items
 
+def build_json_map():
+    """Construit le fichier JSON de mapping"""
+    # Récupère les données des métiers
+    items_df = pd.read_csv('database/data/jobs_items_mapping.csv')
+    unique_jobs = items_df['job_name'].unique()
+
+    # Crée le dossier pour le JSON
+    os.makedirs('database/data/json', exist_ok=True)
+
+    # Construit le JSON
+    json_data = {}
+    for job in unique_jobs:
+        job_items = items_df[items_df['job_name'] == job]
+        json_data[job] = job_items['item_name'].tolist()
+
+    # Sauvegarde le JSON
+    with open('database/data/json/jobs_map.json', 'w', encoding='utf-8') as f:
+        json.dump(json_data, f, ensure_ascii=False, indent=4)
+
 if __name__ == "__main__":
-    jobs, job_items = scrape_all_jobs()
-    print("\n✅ Scraping terminé!")
+    # jobs, job_items = scrape_all_jobs()
+    # print("\n✅ Scraping terminé!")
+
+    # Build json Map
+    build_json_map()

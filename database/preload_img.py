@@ -83,5 +83,53 @@ def process_csv_with_images():
     
     return df
 
+def process_jobs_images():
+    """Traite le CSV des métiers en téléchargeant les images et ajoutant la colonne local_url"""
+    csv_path = "database/data/jobs_list.csv"
+    df = pd.read_csv(csv_path)
+    
+    # Créer le dossier pour les images
+    images_dir = "database/images/jobs"
+    os.makedirs(images_dir, exist_ok=True)
+    
+    # Ajouter la colonne local_url
+    df['local_url'] = ''
+    
+    total_rows = len(df)
+    successful_downloads = 0
+    
+    print(f"Début du téléchargement de {total_rows} images...")
+    
+    for index, row in df.iterrows():
+        original_url = row['image_url']
+            
+        # Générer le nom de fichier local
+        filename = get_filename_from_url(original_url)
+        local_path = os.path.join(images_dir, filename)
+        local_url = f"/images/jobs/{filename}"  # URL relative pour l'interface web
+        
+        # Télécharger l'image si elle n'existe pas déjà
+        if not os.path.exists(local_path):
+            if download_image(original_url, local_path):
+                successful_downloads += 1
+                print(f"✓ Téléchargé: {filename} ({index + 1}/{total_rows})")
+            else:
+                print(f"✗ Échec: {filename} ({index + 1}/{total_rows})")
+        else:
+            successful_downloads += 1
+            print(f"✓ Déjà existant: {filename} ({index + 1}/{total_rows})")
+        
+        # Mettre à jour la colonne local_url
+        df.at[index, 'local_url'] = local_url
+    
+    # Sauvegarder le CSV mis à jour
+    output_path = "database/data/jobs_list_with_local_images.csv"
+    df.to_csv(output_path, index=False)
+    
+    print(f"\nTraitement terminé!")
+    print(f"Images téléchargées avec succès: {successful_downloads}/{total_rows}")
+    print(f"CSV mis à jour sauvegardé dans: {output_path}")
+
 if __name__ == "__main__":
-    process_csv_with_images() 
+    # process_csv_with_images() 
+    process_jobs_images()
