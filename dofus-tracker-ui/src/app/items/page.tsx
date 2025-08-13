@@ -259,10 +259,14 @@ export default function ItemsPage() {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(item =>
-        item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.type.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const searchTermLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(item => {
+        const fields = [item.nom, item.type];
+        return fields.some(field => {
+          if (!field) return false;
+          return typeof field === 'string' && field.toLowerCase().includes(searchTermLower);
+        });
+      });
     }
 
     // Filtre des favoris
@@ -350,7 +354,7 @@ export default function ItemsPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Rechercher un item..."
+              placeholder="Rechercher par nom, type, catégorie ou niveau..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -561,7 +565,7 @@ export default function ItemsPage() {
                     {displayedItems.map((item, index) => (
                       <Card 
                         key={index} 
-                        className="hover:shadow-lg transition-all cursor-pointer relative group hover:bg-accent"
+                        className="hover:shadow-lg transition-all cursor-pointer h-25 py-0 justify-center relative group hover:bg-accent"
                         onClick={(e) => toggleFavorite(item, e)}
                       >
                         <CardContent className="px-3 py-3 md:px-4">
@@ -581,10 +585,10 @@ export default function ItemsPage() {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{item.nom}</p>
+                              <p className="text-sm font-medium break-words">{item.nom}</p>
                               <div className="flex items-center gap-1 mt-1">
                                 <Badge variant="secondary" className="text-xs">
-                                  {item.type === "Essence de gardien de donjon" ? "Essence de Gardien" : item.type}
+                                  {item.type}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
                                   {item.niveau}
