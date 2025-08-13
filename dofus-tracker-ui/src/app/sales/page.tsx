@@ -509,7 +509,7 @@ export default function SalesPage() {
                     {allItems.slice(0, 200).map((item, index) => (
                       <Card 
                         key={index} 
-                        className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer relative"
+                        className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer h-25 py-0 justify-center relative"
                         onClick={(e) => addToSales(item, e)}
                       >
                         <CardContent className="px-4 select-none">
@@ -529,7 +529,7 @@ export default function SalesPage() {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{item.nom}</p>
+                              <p className="text-sm font-medium break-words">{item.nom}</p>
                               <div className="flex items-center gap-2 mt-1">
                                 <Badge variant="secondary" className="text-xs border border-popover">
                                   {item.type === "Essence de gardien de donjon" ? "Essence de Gardien" : item.type}
@@ -656,7 +656,7 @@ export default function SalesPage() {
                       {localSoldItems.map((sale) => (
                         <Card 
                           key={sale.id} 
-                          className="hover:shadow-lg hover:bg-accent transition-all cursor-pointer border-primary/20 relative"
+                          className="hover:shadow-lg hover:bg-accent transition-all cursor-pointer border-primary/20 h-25 py-0 justify-center relative"
                           onClick={() => {
                             if (selectedPriceBadge) {
                               applyPriceBadgeToSale(sale.id);
@@ -683,7 +683,7 @@ export default function SalesPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <p className="text-sm font-medium truncate">{sale.itemName}</p>
+                                  <p className="text-sm font-medium break-words">{sale.itemName}</p>
                                   <Badge variant="outline" className="text-xs">x{sale.quantity}</Badge>
                                 </div>
                                 <div className="flex items-center gap-2 mb-2">
