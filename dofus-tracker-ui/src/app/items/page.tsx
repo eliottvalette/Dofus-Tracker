@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { HelpDialogComponent } from "@/components/ui/help-dialog";
 import { GuestAuthDialog } from "@/components/ui/guest-auth-dialog";
 import { GUEST_FAVORITES } from "@/lib/guest-data";
+import { loadJobs, loadJobsItemsMapping, getItemsForJob, type Job, type JobItemMapping } from "@/lib/jobs-utils";
 
 interface Item {
   category: string;
@@ -34,6 +35,8 @@ export default function ItemsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [selectedJob, setSelectedJob] = useState("");
+  const [jobFilterEnabled, setJobFilterEnabled] = useState(false);
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [favoriteFilter, setFavoriteFilter] = useState<"all" | "favorites" | "not-favorites">("all");
@@ -47,6 +50,10 @@ export default function ItemsPage() {
   }>>([]);
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   const [guestDialogOpen, setGuestDialogOpen] = useState(false);
+  
+  // Jobs states
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [jobsItemsMapping, setJobsItemsMapping] = useState<JobItemMapping>({});
 
   const categories = [
     { id: "armes", name: "Armes" },
@@ -91,6 +98,20 @@ export default function ItemsPage() {
     };
     
     return selectedCategory ? typesByCategory[selectedCategory as keyof typeof typesByCategory] || [] : [];
+  };
+
+  const loadJobsData = async () => {
+    try {
+      const [jobsData, jobsMapping] = await Promise.all([
+        loadJobs(),
+        loadJobsItemsMapping()
+      ]);
+      
+      setJobs(jobsData);
+      setJobsItemsMapping(jobsMapping);
+    } catch (error) {
+      console.error('Erreur lors du chargement des métiers:', error);
+    }
   };
 
   const loadAllItems = async () => {
@@ -232,6 +253,11 @@ export default function ItemsPage() {
       filtered = filtered.filter(item => item.type === selectedType);
     }
 
+    if (jobFilterEnabled && selectedJob) {
+      const jobItems = getItemsForJob(selectedJob, jobsItemsMapping);
+      filtered = filtered.filter(item => jobItems.includes(item.nom));
+    }
+
     if (searchTerm) {
       filtered = filtered.filter(item =>
         item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -247,7 +273,7 @@ export default function ItemsPage() {
     }
 
     setFilteredItems(filtered);
-  }, [allItems, searchTerm, selectedCategory, selectedType, favoriteFilter, favoriteItems]);
+  }, [allItems, searchTerm, selectedCategory, selectedType, selectedJob, favoriteFilter, favoriteItems, jobsItemsMapping]);
 
   const loadMoreItems = () => {
     setItemsToShow(prev => prev + 100);
@@ -255,6 +281,7 @@ export default function ItemsPage() {
 
   useEffect(() => {
     loadAllItems();
+    loadJobsData();
     if (user) {
       loadFavorites();
     }
@@ -264,16 +291,18 @@ export default function ItemsPage() {
   useEffect(() => {
     filterItems();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allItems, searchTerm, selectedCategory, selectedType, favoriteFilter, favoriteItems]); // Retrait de filterItems pour éviter la boucle infinie
+  }, [allItems, searchTerm, selectedCategory, selectedType, selectedJob, jobFilterEnabled, favoriteFilter, favoriteItems, jobsItemsMapping]); // Retrait de filterItems pour éviter la boucle infinie
 
   useEffect(() => {
     // Mettre à jour les items affichés quand les items filtrés changent
     setDisplayedItems(filteredItems.slice(0, itemsToShow));
   }, [filteredItems, itemsToShow]);
 
-  // Reset du type quand on change de catégorie
+  // Reset du type et job quand on change de catégorie
   useEffect(() => {
     setSelectedType("");
+    setSelectedJob("");
+    setJobFilterEnabled(false);
   }, [selectedCategory]);
 
   // Plus besoin de vérifier si user existe car l'auth anonyme est maintenant activée
@@ -410,6 +439,67 @@ export default function ItemsPage() {
             ))}
           </div>
 
+          {/* Jobs (Métiers) */}
+          {jobs.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">
+                  Filtrer par métier
+                </label>
+                <Button
+                  variant={jobFilterEnabled ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setJobFilterEnabled(!jobFilterEnabled);
+                    if (jobFilterEnabled) {
+                      setSelectedJob("");
+                    }
+                  }}
+                  className="h-7"
+                >
+                  {jobFilterEnabled ? "Activé" : "Désactivé"}
+                </Button>
+              </div>
+              
+              {jobFilterEnabled && (
+                <div className="border rounded-md overflow-hidden mt-2">
+                  <ScrollArea className="h-[120px]">
+                    <div className="p-2 flex flex-wrap gap-2">
+                      <Badge 
+                        variant={selectedJob === "" ? "default" : "outline"}
+                        className="cursor-pointer h-7 flex-shrink-0"
+                        onClick={() => setSelectedJob("")}
+                      >
+                        Tous les métiers
+                      </Badge>
+                      {jobs.map((job) => (
+                        <Badge 
+                          key={job.job_id}
+                          variant={selectedJob === job.job_name ? "default" : "outline"}
+                          className="cursor-pointer h-7 hover:bg-accent text-xs flex-shrink-0 whitespace-nowrap flex items-center gap-1"
+                          onClick={() => setSelectedJob(job.job_name)}
+                          title={job.job_name}
+                        >
+                          {job.local_url && (
+                            <img 
+                              src={job.local_url} 
+                              alt={job.job_name}
+                              className="w-4 h-4 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                          {job.job_name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Types (Sous-catégories) */}
           {selectedCategory && getAvailableTypes().length > 0 && (
             <div className="space-y-2">
@@ -451,6 +541,7 @@ export default function ItemsPage() {
           <CardTitle className="text-lg md:text-xl">Résultats ({filteredItems.length} items)</CardTitle>
           <CardDescription className="text-sm">
             {selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.name} - ` : ""}
+            {jobFilterEnabled && selectedJob ? `${selectedJob} - ` : ""}
             {selectedType ? `${selectedType} - ` : ""}
             {searchTerm ? `Recherche: "${searchTerm}"` : "Tous les items"}
             {favoriteFilter !== "all" && ` - ${favoriteFilter === "favorites" ? "Favoris" : "Non favoris"}`}
