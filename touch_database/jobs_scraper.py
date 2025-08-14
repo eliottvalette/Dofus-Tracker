@@ -8,7 +8,7 @@ import json
 
 def fetch_jobs_page(page_num):
     """Récupère une page de métiers si elle n'existe pas déjà"""
-    filename = f"database/html/jobs/jobs_page_{page_num}.html"
+    filename = f"touch_database/html/jobs/jobs_page_{page_num}.html"
     
     # Si le fichier existe, on le lit
     if os.path.exists(filename):
@@ -30,7 +30,7 @@ def fetch_jobs_page(page_num):
     response.raise_for_status()
     
     # Crée le dossier si nécessaire
-    Path(f"database/html/jobs").mkdir(parents=True, exist_ok=True)
+    Path(f"touch_database/html/jobs").mkdir(parents=True, exist_ok=True)
     
     # Sauvegarde
     with open(filename, 'w', encoding='utf-8') as f:
@@ -79,7 +79,7 @@ def extract_jobs_from_html(html_content):
 
 def fetch_job_details(job_id, job_slug):
     """Récupère les détails d'un métier spécifique"""
-    filename = f"database/html/jobs/job_{job_id}_{job_slug}.html"
+    filename = f"touch_database/html/jobs/job_{job_id}_{job_slug}.html"
     
     # Si le fichier existe, on le lit
     if os.path.exists(filename):
@@ -198,8 +198,8 @@ def scrape_all_jobs():
     
     # Sauvegarde la liste des métiers
     jobs_df = pd.DataFrame(all_jobs)
-    jobs_df.to_csv('database/data/jobs_list.csv', index=False)
-    print(f"💾 Liste des métiers sauvegardée: database/data/jobs_list.csv")
+    jobs_df.to_csv('touch_database/data/jobs_list.csv', index=False)
+    print(f"💾 Liste des métiers sauvegardée: touch_database/data/jobs_list.csv")
     
     # Récupère les détails de chaque métier
     all_job_items = []
@@ -222,8 +222,8 @@ def scrape_all_jobs():
         items_df = pd.DataFrame(all_job_items)
         # Réorganise les colonnes pour plus de clarté
         items_df = items_df[['job_name', 'item_name', 'item_type', 'level_required', 'zones', 'item_image_url']]
-        items_df.to_csv('database/data/jobs_items_mapping.csv', index=False)
-        print(f"\n💾 Mapping métiers-items sauvegardé: database/data/jobs_items_mapping.csv")
+        items_df.to_csv('touch_database/data/jobs_items_mapping.csv', index=False)
+        print(f"\n💾 Mapping métiers-items sauvegardé: touch_database/data/jobs_items_mapping.csv")
         print(f"📊 Total: {len(all_job_items)} associations métier-item")
         
         # Statistiques par type
@@ -236,11 +236,11 @@ def scrape_all_jobs():
 def build_json_map():
     """Construit le fichier JSON de mapping"""
     # Récupère les données des métiers
-    items_df = pd.read_csv('database/data/jobs_items_mapping.csv')
+    items_df = pd.read_csv('touch_database/data/jobs_items_mapping.csv')
     unique_jobs = items_df['job_name'].unique()
 
     # Crée le dossier pour le JSON
-    os.makedirs('database/data/json', exist_ok=True)
+    os.makedirs('touch_database/data/json', exist_ok=True)
 
     # Construit le JSON
     json_data = {}
@@ -249,12 +249,12 @@ def build_json_map():
         json_data[job] = job_items['item_name'].tolist()
 
     # Sauvegarde le JSON
-    with open('database/data/json/jobs_map.json', 'w', encoding='utf-8') as f:
+    with open('touch_database/data/json/jobs_map.json', 'w', encoding='utf-8') as f:
         json.dump(json_data, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    # jobs, job_items = scrape_all_jobs()
-    # print("\n✅ Scraping terminé!")
+    jobs, job_items = scrape_all_jobs()
+    print("\n✅ Scraping terminé!")
 
     # Build json Map
     build_json_map()

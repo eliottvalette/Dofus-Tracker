@@ -33,11 +33,11 @@ def process_csv_with_images():
     """Traite le CSV en téléchargeant les images et ajoutant la colonne local_url"""
     
     # Lire le CSV
-    csv_path = "database/data/merged.csv"
+    csv_path = "touch_database/data/merged.csv"
     df = pd.read_csv(csv_path)
     
     # Créer le dossier pour les images
-    images_dir = "database/images"
+    images_dir = "touch_database/images"
     os.makedirs(images_dir, exist_ok=True)
     
     # Ajouter la colonne local_url
@@ -74,7 +74,7 @@ def process_csv_with_images():
         df.at[index, 'local_url'] = local_url
     
     # Sauvegarder le CSV mis à jour
-    output_path = "database/data/merged_with_local_images.csv"
+    output_path = "touch_database/data/merged_with_local_images.csv"
     df.to_csv(output_path, index=False)
     
     print(f"\nTraitement terminé!")
@@ -85,11 +85,11 @@ def process_csv_with_images():
 
 def process_jobs_images():
     """Traite le CSV des métiers en téléchargeant les images et ajoutant la colonne local_url"""
-    csv_path = "database/data/jobs_list.csv"
+    csv_path = "touch_database/data/jobs_list.csv"
     df = pd.read_csv(csv_path)
     
     # Créer le dossier pour les images
-    images_dir = "database/images/jobs"
+    images_dir = "touch_database/images/jobs"
     os.makedirs(images_dir, exist_ok=True)
     
     # Ajouter la colonne local_url
@@ -123,7 +123,7 @@ def process_jobs_images():
         df.at[index, 'local_url'] = local_url
     
     # Sauvegarder le CSV mis à jour
-    output_path = "database/data/jobs_list_with_local_images.csv"
+    output_path = "touch_database/data/jobs_list_with_local_images.csv"
     df.to_csv(output_path, index=False)
     
     print(f"\nTraitement terminé!")

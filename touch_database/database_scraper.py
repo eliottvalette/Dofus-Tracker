@@ -11,7 +11,7 @@ CATEGORIES_MAP = {
 
 def fetch_page_if_missing(category: str, page: int) -> str:
     """Récupère une page seulement si elle n'existe pas déjà"""
-    filename = f"database/html/{category}/{category}_page_{page}.html"
+    filename = f"touch_database/html/{category}/{category}_page_{page}.html"
     
     # Si le fichier existe, on le lit
     if os.path.exists(filename):
@@ -30,7 +30,7 @@ def fetch_page_if_missing(category: str, page: int) -> str:
     response.raise_for_status()
     
     # Crée le dossier si nécessaire
-    Path(f"database/html/{category}").mkdir(parents=True, exist_ok=True)
+    Path(f"touch_database/html/{category}").mkdir(parents=True, exist_ok=True)
     
     # Sauvegarde
     with open(filename, 'w', encoding='utf-8') as f:

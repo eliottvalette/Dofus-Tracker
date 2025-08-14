@@ -9,7 +9,7 @@ CATEGORIES_MAP = {
     "ressources": 78
 }
 
-os.makedirs("database/data", exist_ok=True)
+os.makedirs("touch_database/data", exist_ok=True)
 
 def extract_table_data(html_content: str) -> list:
     """Extrait les données des tables HTML avec les URLs des images"""
@@ -48,7 +48,7 @@ def process_category(category: str, num_pages: int):
     all_data = []
     
     for page in range(1, num_pages + 1):
-        filename = f"database/html/{category}/{category}_page_{page}.html"
+        filename = f"touch_database/html/{category}/{category}_page_{page}.html"
         
         if not os.path.exists(filename):
             print(f"⚠️ Fichier manquant: {filename}")
@@ -68,18 +68,18 @@ def process_category(category: str, num_pages: int):
         df["category"] = category
         df = df[["category", "nom", "type", "niveau", "original_image_url"]]
         
-        csv_filename = f"database/data/{category}_data.csv"
+        csv_filename = f"touch_database/data/{category}_data.csv"
         df.to_csv(csv_filename, index=False)
         print(f"💾 Données sauvegardées: {csv_filename} ({len(all_data)} éléments)")
 
 def merge_data():
-    armes_df = pd.read_csv('database/data/armes_data.csv')
-    consommables_df = pd.read_csv('database/data/consommables_data.csv')
-    equipements_df = pd.read_csv('database/data/equipements_data.csv')
-    ressources_df = pd.read_csv('database/data/ressources_data.csv')
+    armes_df = pd.read_csv('touch_database/data/armes_data.csv')
+    consommables_df = pd.read_csv('touch_database/data/consommables_data.csv')
+    equipements_df = pd.read_csv('touch_database/data/equipements_data.csv')
+    ressources_df = pd.read_csv('touch_database/data/ressources_data.csv')
 
     merged_df = pd.concat([armes_df, consommables_df, equipements_df, ressources_df])
-    merged_df.to_csv('database/data/merged.csv', index=False)
+    merged_df.to_csv('touch_database/data/merged.csv', index=False)
 
 if __name__ == "__main__":
     for category, num_pages in CATEGORIES_MAP.items():
