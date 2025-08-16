@@ -163,8 +163,6 @@
     background-size: 100px 100px;
   }
   
-
-  
   .floating-notification {
     position: fixed;
     pointer-events: none;

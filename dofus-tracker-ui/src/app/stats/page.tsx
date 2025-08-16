@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BarChart3, Package, Activity, Loader2, Clock, Target, PieChart, Calendar, TrendingUp } from "lucide-react";
+import { Package, Activity, Loader2, Clock, Target, PieChart, Calendar, TrendingUp } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -11,11 +11,6 @@ import { useAuth } from "@/lib/firebase-provider";
 import { GUEST_SOLD_SALES } from "@/lib/guest-data";
 import { Button } from "@/components/ui/button";
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
   PieChart as RechartsPieChart,
@@ -24,11 +19,7 @@ import {
 } from 'recharts';
 
 // Palettes de couleurs
-const GRADIENT_COLORS = [
-  '#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe',
-  '#43e97b', '#38f9d7', '#fccb90', '#d57eeb', '#74b9ff', '#fd79a8'
-];
-
+const GRADIENT_COLORS = ["#d9ed92","#b5e48c","#99d98c","#76c893","#52b69a","#34a0a4","#168aad","#1a759f","#1e6091","#184e77"];
 interface SaleItem {
   id: string;
   itemName: string;
