@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 # Catégories à traiter
-CATEGORIES = ["armes", "equipements", "consommables"]
+CATEGORIES = ["armes", "equipements", "consommables", "ressources"]
 
 def extract_item_info_from_filename(filename):
     """Extrait l'ID et le nom de l'item depuis le nom de fichier"""

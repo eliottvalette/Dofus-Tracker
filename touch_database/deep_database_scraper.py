@@ -9,7 +9,8 @@ import requests
 CATEGORIES_MAP = {
     "armes": 30,
     "equipements": 88,
-    "consommables": 53
+    "consommables": 53,
+    "ressources": 78
 }
 
 def extract_item_urls_from_html(html_content: str, category: str) -> list:

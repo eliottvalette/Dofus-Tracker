@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { signOut, onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart, BarChart3, Users, LogOut, User as UserIcon, Menu, Play, HelpCircle } from "lucide-react";
+import { Package, ShoppingCart, BarChart3, Users, LogOut, User as UserIcon, Menu, Play, HelpCircle, Calendar } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -59,6 +59,13 @@ export function MainLayout({ children }: MainLayoutProps) {
       icon: ShoppingCart,
       description: "Page où l'utilisateur met à jour ses ventes",
       href: "/sales"
+    },
+    {
+      id: "daily-plan",
+      name: "Plan Journalier",
+      icon: Calendar,
+      description: "Planification de la production quotidienne et calcul des ressources",
+      href: "/daily-plan"
     },
     {
       id: "stats",
