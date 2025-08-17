@@ -31,9 +31,13 @@ interface Item {
 }
 
 interface CraftRecipe {
+  category: string;
+  has_recipe: boolean;
   job: string;
   job_level: number;
-  ingredients: Array<[string, string, number]>; // [id, nom, quantité]
+  ingredient_names: string[];
+  ingredient_ids: number[];
+  quantities: number[];
 }
 
 interface DailyPlanItem {
@@ -83,23 +87,23 @@ export default function DailyPlanPage() {
 
   const lotSizes = [1, 10, 100, 1000];
 
-  // Charger tous les items du CSV pour la recherche d'images
+  // Charger tous les items du JSON pour la recherche d'images
   const loadAllItemsComplete = useCallback(async () => {
     try {
-      const response = await fetch('/data/merged_with_local_images.csv');
-      const csvText = await response.text();
-      const lines = csvText.split('\n').slice(1);
+      const { loadAllItemsFromJson } = await import('@/lib/jobs-utils');
+      const itemsData = await loadAllItemsFromJson();
       
-      const parsedItems: Item[] = lines
-        .filter(line => line.trim())
-        .map(line => {
-          const [category, nom, type, niveau, web_image_url, image_url] = line.split(',').map(field => 
-            field.replace(/^"|"$/g, '')
-          );
-          return { category, nom, type, niveau, web_image_url, image_url};
-        });
+      // Convertir ItemDetail en Item pour la compatibilité
+      const convertedItems: Item[] = itemsData.map(item => ({
+        category: item.category,
+        nom: item.nom,
+        type: item.type,
+        niveau: item.niveau,
+        web_image_url: '', // Plus utilisé
+        image_url: item.local_url
+      }));
       
-      setAllItemsComplete(parsedItems);
+      setAllItemsComplete(convertedItems);
     } catch (error) {
       console.error('Erreur lors du chargement de tous les items:', error);
     }
@@ -108,7 +112,7 @@ export default function DailyPlanPage() {
   // Charger les données de craft
   const loadCraftRecipes = useCallback(async () => {
     try {
-      const response = await fetch('/data/craft_detailed.json');
+      const response = await fetch('/data/craft.json');
       const craftData = await response.json();
       setCraftRecipes(craftData);
     } catch (error) {
@@ -149,21 +153,21 @@ export default function DailyPlanPage() {
   const loadAllItems = useCallback(async () => {
     setItemsLoading(true);
     try {
-      const response = await fetch('/data/merged_with_local_images.csv');
-      const csvText = await response.text();
-      const lines = csvText.split('\n').slice(1);
+      const { loadAllItemsFromJson } = await import('@/lib/jobs-utils');
+      const itemsData = await loadAllItemsFromJson();
       
-      const parsedItems: Item[] = lines
-        .filter(line => line.trim())
-        .map(line => {
-          const [category, nom, type, niveau, web_image_url, image_url] = line.split(',').map(field => 
-            field.replace(/^"|"$/g, '')
-          );
-          return { category, nom, type, niveau, web_image_url, image_url};
-        });
+      // Convertir ItemDetail en Item pour la compatibilité
+      const convertedItems: Item[] = itemsData.map(item => ({
+        category: item.category,
+        nom: item.nom,
+        type: item.type,
+        niveau: item.niveau,
+        web_image_url: '', // Plus utilisé
+        image_url: item.local_url
+      }));
       
       // Filtrer pour ne garder que les favoris (tous, pas seulement ceux qui ont une recette)
-      const favoriteItemsList = parsedItems.filter(item => favoriteItems.has(item.nom));
+      const favoriteItemsList = convertedItems.filter(item => favoriteItems.has(item.nom));
       
       // Trier par nom
       const sortedItems = favoriteItemsList.sort((a, b) => a.nom.localeCompare(b.nom));
@@ -217,11 +221,16 @@ export default function DailyPlanPage() {
       // planItem.dailyQuantity représente déjà le nombre total d'items par jour
       const dailyProduction = planItem.dailyQuantity;
 
-      recipe.ingredients.forEach(([id, name, quantityPerCraft]) => {
+      // Utiliser les nouvelles propriétés de la structure JSON
+      for (let i = 0; i < recipe.ingredient_names.length; i++) {
+        const name = recipe.ingredient_names[i];
+        const id = recipe.ingredient_ids[i];
+        const quantityPerCraft = recipe.quantities[i];
+        
         const totalQuantityNeeded = quantityPerCraft * dailyProduction;
 
-        if (resourceMap.has(id)) {
-          const existing = resourceMap.get(id)!;
+        if (resourceMap.has(id.toString())) {
+          const existing = resourceMap.get(id.toString())!;
           existing.totalQuantity += totalQuantityNeeded;
           existing.recipes.push({
             craftName: planItem.itemName,
@@ -229,12 +238,12 @@ export default function DailyPlanPage() {
             dailyProduction
           });
         } else {
-          // Chercher l'image de la ressource dans tous les items du CSV
+          // Chercher l'image de la ressource dans tous les items du JSON
           const resourceItem = allItemsComplete.find(item => item.nom === name);
           const imageUrl = resourceItem?.image_url;
 
-          resourceMap.set(id, {
-            id,
+          resourceMap.set(id.toString(), {
+            id: id.toString(),
             name,
             totalQuantity: totalQuantityNeeded,
             image_url: imageUrl,
@@ -245,7 +254,7 @@ export default function DailyPlanPage() {
             }]
           });
         }
-      });
+      }
     });
 
     const resources = Array.from(resourceMap.values())
@@ -305,7 +314,7 @@ export default function DailyPlanPage() {
     }
 
     // Vérifier si l'item a une recette de craft
-    if (!craftRecipes[item.nom]) {
+    if (!craftRecipes[item.nom] || !craftRecipes[item.nom].has_recipe) {
       // Notification d'info (pas d'erreur)
       const notificationId = Date.now().toString();
       const newNotification = {
@@ -417,12 +426,12 @@ export default function DailyPlanPage() {
       // On ne garde que les items qui ont une recette de craft (donc un job associé)
       setFilteredItems(allItems.filter(item => {
         const recipe = craftRecipes[item.nom];
-        return recipe && recipe.job;
+        return recipe && recipe.has_recipe && recipe.job;
       }));
     } else {
       const filtered = allItems.filter(item => {
         const recipe = craftRecipes[item.nom];
-        return recipe && recipe.job && (
+        return recipe && recipe.has_recipe && recipe.job && (
           item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
           item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
           item.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -551,7 +560,7 @@ export default function DailyPlanPage() {
                           </div>
                           <div className="flex gap-1 mt-2">
                             <Badge variant="outline" className="text-xs">
-                              {craftRecipes[item.nom]?.job || 'Pas de recette'}
+                              {craftRecipes[item.nom]?.has_recipe ? craftRecipes[item.nom].job : 'Pas de recette'}
                             </Badge>
                           </div>
                         </div>

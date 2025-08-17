@@ -22,8 +22,15 @@ def items_details_json():
     unique_item_names = items_df['nom'].unique()
     items_details_data = {}
     for item_name in unique_item_names:
-        item_details = items_df[items_df['nom'] == item_name]
-        items_details_data[item_name] = item_details.to_dict(orient='records')
+        item_details = items_df[items_df['nom'] == item_name].iloc[0]
+        # Compose a dict with the relevant fields
+        items_details_data[item_name] = {
+            "id": item_details["local_url"].split('.')[0].split('/')[-1],
+            "name": item_details["nom"],
+            "category": item_details["category"],
+            "type": item_details["type"],
+            "level": item_details["niveau"]
+        }
     with open(f'touch_database/data/json/items_details.json', 'w', encoding='utf-8') as f:
         json.dump(items_details_data, f, ensure_ascii=False, indent=4)
     print("Items details JSON built")
@@ -82,7 +89,53 @@ def jobs_json():
 
     print("Jobs JSON built")
 
+def build_craft_json():
+    """Construit le fichier JSON de craft"""
+    # Récupère les données des craft
+    craft_df = pd.read_csv('touch_database/data/craft_detailed.csv')
+    
+    # Créer le dictionnaire final
+    craft_data = {}
+    
+    # Grouper par item_name
+    for item_name in craft_df['item_name'].unique():
+        item_data = craft_df[craft_df['item_name'] == item_name]
+        
+        # Prendre les données de base (même pour tous les ingrédients)
+        first_row = item_data.iloc[0]
+        
+        has_recipe = bool(first_row['has_recipe'])
+        has_job = not pd.isna(first_row['job'])
+        
+        if has_recipe and has_job:
+            craft_data[item_name] = {
+                "category": first_row['category'],
+                "has_recipe": has_recipe,
+                "job": first_row['job'],
+                "job_level": float(first_row['job_level']),
+                "ingredient_names": item_data['ingredient_name'].dropna().tolist(),
+                "ingredient_ids": [int(id) for id in item_data['ingredient_id'].dropna().tolist()],
+                "quantities": [int(qty) for qty in item_data['quantity'].dropna().tolist()]
+            }
+        else:
+            craft_data[item_name] = {
+                "category": first_row['category'],
+                "has_recipe": has_recipe,
+                "job": None,
+                "job_level": None,
+                "ingredient_names": [],
+                "ingredient_ids": [],
+                "quantities": []
+            }
+    
+    # Sauvegarder le JSON
+    with open('touch_database/data/json/craft.json', 'w', encoding='utf-8') as f:
+        json.dump(craft_data, f, ensure_ascii=False, indent=4)
+    
+    print("Craft JSON built")
+
 if __name__ == "__main__":
     items_details_json()
     image_json()
     jobs_json()
+    build_craft_json()

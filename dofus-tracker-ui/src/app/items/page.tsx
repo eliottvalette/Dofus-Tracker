@@ -14,7 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { HelpDialogComponent } from "@/components/ui/help-dialog";
 import { GuestAuthDialog } from "@/components/ui/guest-auth-dialog";
 import { GUEST_FAVORITES } from "@/lib/guest-data";
-import { loadJobs, loadJobsItemsMapping, getItemsForJob, type Job, type JobItemMapping } from "@/lib/jobs-utils";
+import { loadJobs, loadJobsItemsMapping, getItemsForJob, loadAllItemsFromJson, type Job, type JobItemMapping, type ItemDetail } from "@/lib/jobs-utils";
 
 interface Item {
   category: string;
@@ -117,27 +117,19 @@ export default function ItemsPage() {
   const loadAllItems = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/data/merged_with_local_images.csv');
-      const csvText = await response.text();
-      const lines = csvText.split('\n').slice(1);
+      const itemsData = await loadAllItemsFromJson();
       
-      const parsedItems: Item[] = lines
-        .filter(line => line.trim())
-        .map(line => {
-          const [category, nom, type, niveau, web_image_url, image_url] = line.split(',').map(field => 
-            field.replace(/^"|"$/g, '')
-          );
-          return { category, nom, type, niveau, web_image_url, image_url};
-        });
+      // Convertir ItemDetail en Item pour la compatibilité
+      const convertedItems: Item[] = itemsData.map(item => ({
+        category: item.category,
+        nom: item.nom,
+        type: item.type,
+        niveau: item.niveau,
+        web_image_url: '', // Plus utilisé
+        image_url: item.local_url
+      }));
       
-      // Trier les items par niveau croissant
-      const sortedItems = parsedItems.sort((a, b) => {
-        const niveauA = parseInt(a.niveau.replace('Niv. ', '')) || 0;
-        const niveauB = parseInt(b.niveau.replace('Niv. ', '')) || 0;
-        return niveauA - niveauB;
-      });
-      
-      setAllItems(sortedItems);
+      setAllItems(convertedItems);
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
     } finally {

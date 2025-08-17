@@ -148,21 +148,21 @@ export default function SalesPage() {
   const loadAllItems = useCallback(async () => {
     setItemsLoading(true);
     try {
-      const response = await fetch('/data/merged_with_local_images.csv');
-      const csvText = await response.text();
-      const lines = csvText.split('\n').slice(1);
+      const { loadAllItemsFromJson } = await import('@/lib/jobs-utils');
+      const itemsData = await loadAllItemsFromJson();
       
-      const parsedItems: Item[] = lines
-        .filter(line => line.trim())
-        .map(line => {
-          const [category, nom, type, niveau, web_image_url, image_url] = line.split(',').map(field => 
-            field.replace(/^"|"$/g, '')
-          );
-          return { category, nom, type, niveau, web_image_url, image_url};
-        });
+      // Convertir ItemDetail en Item pour la compatibilité
+      const convertedItems: Item[] = itemsData.map(item => ({
+        category: item.category,
+        nom: item.nom,
+        type: item.type,
+        niveau: item.niveau,
+        web_image_url: '', // Plus utilisé
+        image_url: item.local_url
+      }));
       
       // Filtrer pour ne garder que les favoris
-      const favoriteItemsList = parsedItems.filter(item => favoriteItems.has(item.nom));
+      const favoriteItemsList = convertedItems.filter(item => favoriteItems.has(item.nom));
       
       // Trier par nom
       const sortedItems = favoriteItemsList.sort((a, b) => a.nom.localeCompare(b.nom));

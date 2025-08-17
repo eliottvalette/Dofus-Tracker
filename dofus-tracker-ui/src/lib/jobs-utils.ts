@@ -21,25 +21,19 @@ export async function loadJobs(): Promise<Job[]> {
   }
 
   try {
-    const response = await fetch('/data/jobs_list_with_local_images.csv');
-    const csvText = await response.text();
-    const lines = csvText.split('\n').slice(1); // Skip header
+    const response = await fetch('/data/images.json');
+    const imagesData = await response.json();
     
-    const jobs: Job[] = lines
-      .filter(line => line.trim())
-      .map(line => {
-        const [job_id, job_name, job_slug, job_url, image_url, local_url] = line.split(',').map(field => 
-          field.replace(/^"|"$/g, '')
-        );
-        return {
-          job_id: parseInt(job_id),
-          job_name,
-          job_slug,
-          job_url,
-          image_url,
-          local_url
-        };
-      });
+    const jobsImages = imagesData.jobs || {};
+    
+    const jobs: Job[] = Object.entries(jobsImages).map(([job_name, local_url], index) => ({
+      job_id: index + 1, // ID généré pour compatibilité
+      job_name,
+      job_slug: job_name.toLowerCase().replace(/\s+/g, '-'),
+      job_url: '', // URL vide par défaut
+      image_url: '', // URL externe vide
+      local_url: local_url as string
+    }));
     
     // Trier par nom pour un meilleur UX
     jobs.sort((a, b) => a.job_name.localeCompare(b.job_name));
@@ -87,4 +81,69 @@ export function getItemsForJob(jobName: string, jobsMap: JobItemMapping): string
 
 export function getAllJobNames(jobsMap: JobItemMapping): string[] {
   return Object.keys(jobsMap).sort();
+}
+
+// Interface pour les items
+export interface ItemDetail {
+  category: string;
+  nom: string;
+  type: string;
+  niveau: string;
+  local_url: string;
+}
+
+// Cache pour les items
+let itemsCache: ItemDetail[] | null = null;
+
+export async function loadAllItemsFromJson(): Promise<ItemDetail[]> {
+  if (itemsCache) {
+    return itemsCache;
+  }
+
+  try {
+    // Charger les données des items et des images en parallèle
+    const [itemsResponse, imagesResponse] = await Promise.all([
+      fetch('/data/items_details.json'),
+      fetch('/data/images.json')
+    ]);
+    
+    const itemsData = await itemsResponse.json();
+    const imagesData = await imagesResponse.json();
+    
+    // Convertir la structure { "item_name": details } en array plat
+    const items: ItemDetail[] = [];
+    for (const [itemName, itemDetails] of Object.entries(itemsData)) {
+      const details = itemDetails as { category: string; type: string; level: string };
+      
+      // Chercher l'URL de l'image dans images.json
+      let localUrl = '';
+      for (const category of Object.keys(imagesData)) {
+        if (category !== 'jobs' && imagesData[category][itemName]) {
+          localUrl = imagesData[category][itemName];
+          break;
+        }
+      }
+      
+      items.push({
+        category: details.category,
+        nom: itemName,
+        type: details.type,
+        niveau: details.level,
+        local_url: localUrl
+      });
+    }
+    
+    // Trier les items par niveau croissant
+    const sortedItems = items.sort((a, b) => {
+      const niveauA = parseInt(a.niveau.replace('Niv. ', '')) || 0;
+      const niveauB = parseInt(b.niveau.replace('Niv. ', '')) || 0;
+      return niveauA - niveauB;
+    });
+    
+    itemsCache = sortedItems;
+    return sortedItems;
+  } catch (error) {
+    console.error('Erreur lors du chargement des items:', error);
+    return [];
+  }
 }
