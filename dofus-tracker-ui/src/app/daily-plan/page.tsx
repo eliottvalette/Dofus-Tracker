@@ -19,7 +19,7 @@ import {
   HelpDialogCancel 
 } from "@/components/ui/help-dialog";
 import { GuestAuthDialog } from "@/components/ui/guest-auth-dialog";
-import { GUEST_FAVORITES } from "@/lib/guest-data";
+import { GUEST_FAVORITES, GUEST_DAILY_PLAN, GUEST_CRAFT_ITEMS } from "@/lib/guest-data";
 
 interface Item {
   category: string;
@@ -112,13 +112,30 @@ export default function DailyPlanPage() {
   // Charger les données de craft
   const loadCraftRecipes = useCallback(async () => {
     try {
-      const response = await fetch('/data/craft.json');
-      const craftData = await response.json();
-      setCraftRecipes(craftData);
+      if (isGuest) {
+        // Pour les invités, utiliser les données prédéfinies
+        const guestCraftData: Record<string, CraftRecipe> = {};
+        GUEST_CRAFT_ITEMS.forEach(item => {
+          guestCraftData[item.itemName] = {
+            category: item.category,
+            has_recipe: true,
+            job: item.job,
+            job_level: item.job_level,
+            ingredient_names: item.ingredient_names,
+            ingredient_ids: item.ingredient_ids,
+            quantities: item.quantities
+          };
+        });
+        setCraftRecipes(guestCraftData);
+      } else {
+        const response = await fetch('/data/craft.json');
+        const craftData = await response.json();
+        setCraftRecipes(craftData);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des recettes de craft:', error);
     }
-  }, []);
+  }, [isGuest]);
 
   // Charger les favoris
   const loadFavorites = useCallback(async () => {
@@ -187,8 +204,8 @@ export default function DailyPlanPage() {
     setLoading(true);
     try {
       if (isGuest) {
-        // Pour les invités, utiliser les données locales (vide par défaut)
-        setDailyPlan([]);
+        // Pour les invités, utiliser les données prédéfinies
+        setDailyPlan(GUEST_DAILY_PLAN);
       } else {
         const dailyPlanRef = collection(db, "users", user.uid, "dailyPlan");
         const dailyPlanSnapshot = await getDocs(dailyPlanRef);

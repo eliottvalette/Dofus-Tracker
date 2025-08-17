@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
-import { GUEST_SOLD_SALES } from "@/lib/guest-data";
+import { GUEST_SOLD_SALES, GUEST_ADDITIONAL_SALES } from "@/lib/guest-data";
 import { Button } from "@/components/ui/button";
 import { 
   Tooltip, 
@@ -154,8 +154,9 @@ export default function StatsPage() {
       let soldData: SaleItem[] = [];
 
       if (isGuest) {
-        // Pour les invités, utiliser les données prédéfinies
-        soldData = GUEST_SOLD_SALES.map(sale => ({
+        // Pour les invités, utiliser les données prédéfinies (ventes + ventes additionnelles)
+        const allGuestSales = [...GUEST_SOLD_SALES, ...GUEST_ADDITIONAL_SALES];
+        soldData = allGuestSales.map(sale => ({
           ...sale,
           createdAt: Timestamp.fromDate(sale.createdAt),
           soldAt: sale.soldAt ? Timestamp.fromDate(sale.soldAt) : undefined

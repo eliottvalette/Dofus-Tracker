@@ -206,14 +206,189 @@ export const GUEST_SOLD_SALES: GuestSaleItem[] = [
   }
 ];
 
-// Fonction pour obtenir toutes les données d'invité
-export const getGuestData = () => ({
-  favorites: GUEST_FAVORITES,
-  pendingSales: GUEST_PENDING_SALES,
-  soldSales: GUEST_SOLD_SALES
-});
+
 
 // Fonction pour vérifier si un item est dans les favoris invité
 export const isGuestFavorite = (itemName: string): boolean => {
   return GUEST_FAVORITES.some(fav => fav.itemName === itemName);
 };
+
+// Interface pour les items craftables du plan journalier
+export interface GuestCraftItem {
+  itemName: string;
+  category: string;
+  type: string;
+  job: string;
+  job_level: number;
+  ingredient_names: string[];
+  ingredient_ids: number[];
+  quantities: number[];
+}
+
+// Items craftables pour le plan journalier (mode invité)
+export const GUEST_CRAFT_ITEMS: GuestCraftItem[] = [
+  {
+    itemName: "Arc de Chasse",
+    category: "armes",
+    type: "Arc",
+    job: "Sculpteur",
+    job_level: 20,
+    ingredient_names: ["Bois de Châtaignier", "Ficelle", "Plume de Bouftou"],
+    ingredient_ids: [1001, 1002, 1003],
+    quantities: [3, 1, 2]
+  },
+  {
+    itemName: "Épée de Chasse",
+    category: "armes",
+    type: "Épée",
+    job: "Forgeur",
+    job_level: 25,
+    ingredient_names: ["Minerai de Fer", "Bois de Chêne", "Cuir de Bouftou"],
+    ingredient_ids: [2001, 2002, 2003],
+    quantities: [5, 2, 1]
+  },
+  {
+    itemName: "Baguette de Chasse",
+    category: "armes",
+    type: "Baguette",
+    job: "Sculpteur",
+    job_level: 15,
+    ingredient_names: ["Bois de Frêne", "Cristal", "Plume de Corbeau"],
+    ingredient_ids: [3001, 3002, 3003],
+    quantities: [2, 1, 3]
+  },
+  {
+    itemName: "Hache de Chasse",
+    category: "armes",
+    type: "Hache",
+    job: "Forgeur",
+    job_level: 30,
+    ingredient_names: ["Minerai de Fer", "Bois de Chêne", "Pierre de Silex"],
+    ingredient_ids: [4001, 4002, 4003],
+    quantities: [4, 3, 2]
+  },
+  {
+    itemName: "Marteau de Chasse",
+    category: "armes",
+    type: "Marteau",
+    job: "Forgeur",
+    job_level: 35,
+    ingredient_names: ["Minerai de Fer", "Bois de Chêne", "Cuir de Sanglier"],
+    ingredient_ids: [5001, 5002, 5003],
+    quantities: [6, 2, 1]
+  }
+];
+
+// Plan journalier prédéfini pour les invités
+export const GUEST_DAILY_PLAN = [
+  {
+    id: "guest_plan_1",
+    itemName: "Arc de Chasse",
+    itemImage: "/images/20016.w40h40.png",
+    category: "armes",
+    type: "Arc",
+    dailyQuantity: 5,
+    lotSize: 5
+  },
+  {
+    id: "guest_plan_2",
+    itemName: "Épée de Chasse",
+    itemImage: "/images/20017.w40h40.png",
+    category: "armes",
+    type: "Épée",
+    dailyQuantity: 3,
+    lotSize: 3
+  },
+  {
+    id: "guest_plan_3",
+    itemName: "Baguette de Chasse",
+    itemImage: "/images/3001.w40h40.png",
+    category: "armes",
+    type: "Baguette",
+    dailyQuantity: 10,
+    lotSize: 10
+  }
+];
+
+// Plus de ventes pour des statistiques plus riches
+export const GUEST_ADDITIONAL_SALES: GuestSaleItem[] = [
+  {
+    id: "guest_additional_1",
+    itemName: "Arc de Chasse",
+    itemImage: "/images/20016.w40h40.png",
+    category: "armes",
+    type: "Arc",
+    quantity: 1,
+    price: 350,
+    date: "2025-06-10T08:00:00Z",
+    createdAt: new Date("2025-06-10T08:00:00Z"),
+    status: "sold",
+    soldDate: "2025-06-10T10:30:00Z",
+    soldAt: new Date("2025-06-10T10:30:00Z") // Vendu en 2h30
+  },
+  {
+    id: "guest_additional_2",
+    itemName: "Hache de Chasse",
+    itemImage: "/images/20018.w40h40.png",
+    category: "armes",
+    type: "Hache",
+    quantity: 1,
+    price: 280,
+    date: "2025-06-09T14:00:00Z",
+    createdAt: new Date("2025-06-09T14:00:00Z"),
+    status: "sold",
+    soldDate: "2025-06-09T16:45:00Z",
+    soldAt: new Date("2025-06-09T16:45:00Z") // Vendu en 2h45
+  },
+  {
+    id: "guest_additional_3",
+    itemName: "Marteau de Chasse",
+    itemImage: "/images/20019.w40h40.png",
+    category: "armes",
+    type: "Marteau",
+    quantity: 1,
+    price: 320,
+    date: "2025-06-08T11:00:00Z",
+    createdAt: new Date("2025-06-08T11:00:00Z"),
+    status: "sold",
+    soldDate: "2025-06-08T13:15:00Z",
+    soldAt: new Date("2025-06-08T13:15:00Z") // Vendu en 2h15
+  },
+  {
+    id: "guest_additional_4",
+    itemName: "Lance de Chasse",
+    itemImage: "/images/20017.w40h40.png",
+    category: "armes",
+    type: "Lance",
+    quantity: 2,
+    price: 180,
+    date: "2025-06-07T09:00:00Z",
+    createdAt: new Date("2025-06-07T09:00:00Z"),
+    status: "sold",
+    soldDate: "2025-06-07T11:30:00Z",
+    soldAt: new Date("2025-06-07T11:30:00Z") // Vendu en 2h30
+  },
+  {
+    id: "guest_additional_5",
+    itemName: "Dague de Chasse",
+    itemImage: "/images/20020.w40h40.png",
+    category: "armes",
+    type: "Dague",
+    quantity: 1,
+    price: 220,
+    date: "2025-06-06T16:00:00Z",
+    createdAt: new Date("2025-06-06T16:00:00Z"),
+    status: "sold",
+    soldDate: "2025-06-06T18:45:00Z",
+    soldAt: new Date("2025-06-06T18:45:00Z") // Vendu en 2h45
+  }
+];
+
+// Mise à jour de la fonction getGuestData
+export const getGuestData = () => ({
+  favorites: GUEST_FAVORITES,
+  pendingSales: GUEST_PENDING_SALES,
+  soldSales: [...GUEST_SOLD_SALES, ...GUEST_ADDITIONAL_SALES],
+  craftItems: GUEST_CRAFT_ITEMS,
+  dailyPlan: GUEST_DAILY_PLAN
+});
