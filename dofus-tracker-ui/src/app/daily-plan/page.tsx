@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, Package, TrendingUp, Calculator, Plus, Minus, Trash2, Heart, HelpCircle, Search } from "lucide-react";
+import { Calendar, Package, Calculator, Trash2, Heart, HelpCircle, Search, Check } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/firebase-provider";
 import { 
@@ -50,6 +50,7 @@ interface ResourceRequirement {
   id: string;
   name: string;
   totalQuantity: number;
+  image_url?: string;
   recipes: Array<{
     craftName: string;
     quantityNeeded: number;
@@ -60,6 +61,7 @@ interface ResourceRequirement {
 export default function DailyPlanPage() {
   const { user, isGuest } = useAuth();
   const [allItems, setAllItems] = useState<Item[]>([]);
+  const [allItemsComplete, setAllItemsComplete] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [favoriteItems, setFavoriteItems] = useState<Set<string>>(new Set());
   const [craftRecipes, setCraftRecipes] = useState<Record<string, CraftRecipe>>({});
@@ -80,6 +82,28 @@ export default function DailyPlanPage() {
   const [guestDialogOpen, setGuestDialogOpen] = useState(false);
 
   const lotSizes = [1, 10, 100, 1000];
+
+  // Charger tous les items du CSV pour la recherche d'images
+  const loadAllItemsComplete = useCallback(async () => {
+    try {
+      const response = await fetch('/data/merged_with_local_images.csv');
+      const csvText = await response.text();
+      const lines = csvText.split('\n').slice(1);
+      
+      const parsedItems: Item[] = lines
+        .filter(line => line.trim())
+        .map(line => {
+          const [category, nom, type, niveau, web_image_url, image_url] = line.split(',').map(field => 
+            field.replace(/^"|"$/g, '')
+          );
+          return { category, nom, type, niveau, web_image_url, image_url};
+        });
+      
+      setAllItemsComplete(parsedItems);
+    } catch (error) {
+      console.error('Erreur lors du chargement de tous les items:', error);
+    }
+  }, []);
 
   // Charger les données de craft
   const loadCraftRecipes = useCallback(async () => {
@@ -167,7 +191,10 @@ export default function DailyPlanPage() {
         const dailyPlanData: DailyPlanItem[] = [];
         
         dailyPlanSnapshot.forEach((doc) => {
-          dailyPlanData.push({ id: doc.id, ...doc.data() } as DailyPlanItem);
+          const data = doc.data();
+          // Utiliser l'ID du document Firestore et supprimer l'ancien champ id s'il existe
+          const { id: _oldId, ...cleanData } = data;
+          dailyPlanData.push({ id: doc.id, ...cleanData } as DailyPlanItem);
         });
         
         setDailyPlan(dailyPlanData);
@@ -187,7 +214,8 @@ export default function DailyPlanPage() {
       const recipe = craftRecipes[planItem.itemName];
       if (!recipe) return;
 
-      const dailyProduction = planItem.dailyQuantity * planItem.lotSize;
+      // planItem.dailyQuantity représente déjà le nombre total d'items par jour
+      const dailyProduction = planItem.dailyQuantity;
 
       recipe.ingredients.forEach(([id, name, quantityPerCraft]) => {
         const totalQuantityNeeded = quantityPerCraft * dailyProduction;
@@ -201,10 +229,15 @@ export default function DailyPlanPage() {
             dailyProduction
           });
         } else {
+          // Chercher l'image de la ressource dans tous les items du CSV
+          const resourceItem = allItemsComplete.find(item => item.nom === name);
+          const imageUrl = resourceItem?.image_url;
+
           resourceMap.set(id, {
             id,
             name,
             totalQuantity: totalQuantityNeeded,
+            image_url: imageUrl,
             recipes: [{
               craftName: planItem.itemName,
               quantityNeeded: totalQuantityNeeded,
@@ -219,7 +252,7 @@ export default function DailyPlanPage() {
       .sort((a, b) => b.totalQuantity - a.totalQuantity);
     
     setResourceRequirements(resources);
-  }, [dailyPlan, craftRecipes]);
+  }, [dailyPlan, craftRecipes, allItemsComplete]);
 
   // Ajouter un item au plan journalier
   const addToDailyPlan = async (item: Item, event: React.MouseEvent) => {
@@ -228,6 +261,47 @@ export default function DailyPlanPage() {
     if (isGuest) {
       setGuestDialogOpen(true);
       return;
+    }
+
+    // Vérifier si l'item existe déjà dans le plan
+    const existingItemIndex = dailyPlan.findIndex(planItem => 
+      planItem.itemName === item.nom
+    );
+
+    if (existingItemIndex !== -1) {
+      // L'item existe déjà, augmenter la quantité
+      const existingItem = dailyPlan[existingItemIndex];
+      const newQuantity = existingItem.dailyQuantity + selectedLotSize;
+      
+      try {
+        // S'assurer que nous utilisons bien l'ID du document Firestore
+        const planItemRef = doc(db, "users", user.uid, "dailyPlan", existingItem.id);
+        await updateDoc(planItemRef, { dailyQuantity: newQuantity });
+        
+        setDailyPlan(prev => prev.map((planItem, index) => 
+          index === existingItemIndex 
+            ? { ...planItem, dailyQuantity: newQuantity }
+            : planItem
+        ));
+
+        // Notification de mise à jour
+        const notificationId = Date.now().toString();
+        const newNotification = {
+          id: notificationId,
+          x: event.clientX,
+          y: event.clientY,
+          text: `+${selectedLotSize} (Total: ${newQuantity})`,
+        };
+        setFloatingNotifications(prev => [...prev, newNotification]);
+        setTimeout(() => {
+          setFloatingNotifications(prev => prev.filter(notif => notif.id !== notificationId));
+        }, 2000);
+
+        return;
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour de la quantité:", error);
+        return;
+      }
     }
 
     // Vérifier si l'item a une recette de craft
@@ -244,51 +318,15 @@ export default function DailyPlanPage() {
       setTimeout(() => {
         setFloatingNotifications(prev => prev.filter(notif => notif.id !== notificationId));
       }, 2000);
-      
-      // Ajouter quand même l'item au plan (sans recette)
-      const dailyPlanItem: DailyPlanItem = {
-        id: Date.now().toString(),
-        itemName: item.nom,
-        itemImage: item.image_url,
-        category: item.category,
-        type: item.type,
-        dailyQuantity: 1,
-        lotSize: selectedLotSize,
-      };
-
-      try {
-        const dailyPlanRef = collection(db, "users", user.uid, "dailyPlan");
-        const docRef = await addDoc(dailyPlanRef, dailyPlanItem);
-        
-        setDailyPlan(prev => [...prev, { ...dailyPlanItem, id: docRef.id }]);
-
-        // Notification de succès
-        const successNotificationId = Date.now().toString();
-        const successNotification = {
-          id: successNotificationId,
-          x: event.clientX,
-          y: event.clientY,
-          text: "+Ajouté au plan",
-        };
-        setFloatingNotifications(prev => [...prev, successNotification]);
-        setTimeout(() => {
-          setFloatingNotifications(prev => prev.filter(notif => notif.id !== successNotificationId));
-        }, 2000);
-
-        return;
-      } catch (error) {
-        console.error("Erreur lors de l'ajout au plan journalier:", error);
-        return;
-      }
     }
 
-    const dailyPlanItem: DailyPlanItem = {
-      id: Date.now().toString(),
+    // Créer un nouvel item dans le plan - ne pas inclure d'ID ici car Firestore le génèrera
+    const dailyPlanItem = {
       itemName: item.nom,
       itemImage: item.image_url,
       category: item.category,
       type: item.type,
-      dailyQuantity: 1,
+      dailyQuantity: selectedLotSize, // Utiliser la taille de lot sélectionnée
       lotSize: selectedLotSize,
     };
 
@@ -296,6 +334,7 @@ export default function DailyPlanPage() {
       const dailyPlanRef = collection(db, "users", user.uid, "dailyPlan");
       const docRef = await addDoc(dailyPlanRef, dailyPlanItem);
       
+      // Utiliser l'ID généré par Firestore
       setDailyPlan(prev => [...prev, { ...dailyPlanItem, id: docRef.id }]);
 
       // Notification de succès
@@ -304,7 +343,7 @@ export default function DailyPlanPage() {
         id: notificationId,
         x: event.clientX,
         y: event.clientY,
-        text: "+Ajouté au plan",
+        text: `+${selectedLotSize} ajouté au plan`,
       };
       setFloatingNotifications(prev => [...prev, newNotification]);
       setTimeout(() => {
@@ -321,8 +360,8 @@ export default function DailyPlanPage() {
     if (!user || isGuest) return;
 
     if (newQuantity <= 0) {
-      removePlanItem(planItemId);
-      return;
+      // Au lieu de supprimer, mettre la quantité à 1
+      newQuantity = 1;
     }
 
     try {
@@ -359,7 +398,8 @@ export default function DailyPlanPage() {
   useEffect(() => {
     loadCraftRecipes();
     loadFavorites();
-  }, [loadCraftRecipes, loadFavorites]);
+    loadAllItemsComplete();
+  }, [loadCraftRecipes, loadFavorites, loadAllItemsComplete]);
 
   useEffect(() => {
     if (favoriteItems.size > 0) {
@@ -422,7 +462,7 @@ export default function DailyPlanPage() {
             Items Favoris Craftables
           </CardTitle>
           <CardDescription>
-            Sélectionnez les items que vous voulez ajouter à votre plan journalier
+            Sélectionnez les items que vous voulez ajouter à votre plan journalier. Les badges +1, +10, +100, +1000 facilitent l&apos;ajout des quantités.
             {filteredItems.length > 0 && (
               <span className="ml-2 text-sm font-medium">
                 ({filteredItems.length} favori{filteredItems.length > 1 ? 's' : ''} affiché{filteredItems.length > 1 ? 's' : ''})
@@ -441,9 +481,9 @@ export default function DailyPlanPage() {
               />
             </div>
             
-            {/* Sélecteur de taille de lot */}
+            {/* Sélecteur de taille de lot pour faciliter l'ajout */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Taille du lot</label>
+              <label className="text-sm font-medium mb-2 block">Quantité à ajouter</label>
               <div className="flex gap-2">
                 {lotSizes.map((size) => (
                   <Button
@@ -451,7 +491,7 @@ export default function DailyPlanPage() {
                     variant={selectedLotSize === size ? "default" : "outline"}
                     onClick={() => setSelectedLotSize(size)}
                   >
-                    {size}
+                    +{size}
                   </Button>
                 ))}
               </div>
@@ -558,7 +598,7 @@ export default function DailyPlanPage() {
             </div>
           ) : (
             <ScrollArea className="h-[400px]">
-              <div className="space-y-4">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                 {dailyPlan.map((planItem) => (
                   <Card key={planItem.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
@@ -578,39 +618,50 @@ export default function DailyPlanPage() {
                           <div>
                             <h3 className="font-medium">{planItem.itemName}</h3>
                             <p className="text-sm text-muted-foreground">{planItem.type}</p>
-                            <Badge variant="outline" className="text-xs mt-1">
-                              Lot de {planItem.lotSize}
-                            </Badge>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min="1"
+                              value={planItem.dailyQuantity}
+                              onChange={(e) => {
+                                const newValue = parseInt(e.target.value) || 1;
+                                // Empêcher les valeurs négatives
+                                if (newValue < 1) return;
+                                // Mettre à jour localement sans sauvegarder
+                                setDailyPlan(prev => 
+                                  prev.map(item => 
+                                    item.id === planItem.id 
+                                      ? { ...item, dailyQuantity: newValue }
+                                      : item
+                                  )
+                                );
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  updateDailyQuantity(planItem.id, planItem.dailyQuantity);
+                                }
+                              }}
+                              className="w-26 text-center"
+                            />
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateDailyQuantity(planItem.id, planItem.dailyQuantity - 1)}
+                              onClick={() => updateDailyQuantity(planItem.id, planItem.dailyQuantity)}
                             >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <span className="w-8 text-center font-medium">
-                              {planItem.dailyQuantity}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => updateDailyQuantity(planItem.id, planItem.dailyQuantity + 1)}
-                            >
-                              <Plus className="h-4 w-4" />
+                              <Check className="h-4 w-4" />
                             </Button>
                           </div>
                           
                           <div className="text-right">
                             <div className="font-medium">
-                              {planItem.dailyQuantity * planItem.lotSize} items/jour
+                              {planItem.dailyQuantity} items
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {planItem.dailyQuantity} craft{planItem.dailyQuantity > 1 ? 's' : ''}
+                              Total cumulé
                             </div>
                           </div>
                           
@@ -654,24 +705,32 @@ export default function DailyPlanPage() {
             </div>
           ) : (
             <ScrollArea className="h-[400px]">
-              <div className="space-y-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {resourceRequirements.map((resource) => (
-                  <Card key={resource.id} className="hover:shadow-md transition-shadow">
+                  <Card key={resource.id} className="hover:shadow-lg hover:bg-secondary transition-all h-25 py-0 justify-center relative">
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium">{resource.name}</h3>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                          {resource.image_url ? (
+                            <img 
+                              src={resource.image_url} 
+                              alt={resource.name}
+                              className="w-10 h-10 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">{resource.name}</h3>
                           <div className="text-sm text-muted-foreground mt-1">
-                            Utilisé pour:{" "}
                             {resource.recipes.map(recipe => recipe.craftName).join(", ")}
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xl font-bold">
+                          <div className="text-lg font-bold mt-2 text-primary">
                             {resource.totalQuantity.toLocaleString()}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            par jour
                           </div>
                         </div>
                       </div>
@@ -709,18 +768,18 @@ export default function DailyPlanPage() {
           <div className="space-y-6">
             <div className="text-sm space-y-4">
               <div>
-                <h3 className="font-semibold mb-2">Vue d'ensemble</h3>
+                <h3 className="font-semibold mb-2">Vue d&apos;ensemble</h3>
                 <p>Cette page vous permet de planifier votre production quotidienne de crafts et de calculer automatiquement les ressources nécessaires.</p>
               </div>
               
               <div>
                 <h3 className="font-semibold mb-2">Items Favoris Craftables</h3>
-                <p>Cette section affiche tous vos items favoris qui peuvent être craftés. Sélectionnez la taille de lot souhaitée puis cliquez sur un item pour l'ajouter à votre plan.</p>
+                <p>Cette section affiche tous vos items favoris qui peuvent être craftés. Sélectionnez la taille de lot souhaitée puis cliquez sur un item pour l&apos;ajouter à votre plan.</p>
               </div>
               
               <div>
                 <h3 className="font-semibold mb-2">Production Journalière</h3>
-                <p>Gérez ici les items que vous voulez crafter chaque jour. Ajustez les quantités avec les boutons + et - pour définir combien de fois vous voulez crafter chaque item.</p>
+                <p>Gérez ici les items que vous voulez crafter chaque jour. Ajustez les quantités directement dans l&apos;input puis cliquez sur le bouton de validation (✓) pour sauvegarder.</p>
               </div>
               
               <div>
