@@ -98,6 +98,30 @@ export default function DailyPlanPage() {
 
   const lotSizes = [1, 10, 100, 1000];
 
+  // Prix moyens (unitaires) prédéfinis sous forme de badges (pas d'input ici)
+  const [priceBadges, setPriceBadges] = useState<Array<{ id: string; label: string; price: number }>>([
+    { id: "p10", label: "10 K", price: 10 },
+    { id: "p100", label: "100 K", price: 100 },
+    { id: "p1000", label: "1 000 K", price: 1000 },
+    { id: "p10000", label: "10 000 K", price: 10000 },
+  ]);
+  const [selectedPriceBadge, setSelectedPriceBadge] = useState<string | null>(null);
+  const [ingredientUnitPrices, setIngredientUnitPrices] = useState<Record<string, number>>({});
+  const [newPriceBadgeInput, setNewPriceBadgeInput] = useState("");
+
+  const createPriceBadge = () => {
+    if (!newPriceBadgeInput.trim()) return;
+    const price = parseFloat(newPriceBadgeInput);
+    if (isNaN(price) || price < 0) return;
+    const newBadge = {
+      id: Date.now().toString(),
+      label: `${price.toLocaleString()} K`,
+      price: price,
+    };
+    setPriceBadges((prev) => [...prev, newBadge]);
+    setNewPriceBadgeInput("");
+  };
+
   // Charger tous les items du JSON pour la recherche d'images
   const loadAllItemsComplete = useCallback(async () => {
     try {
@@ -585,6 +609,14 @@ export default function DailyPlanPage() {
   const getFinalResourceQuantity = (resourceId: string, baseQuantity: number) => {
     const localQuantity = localResourceQuantities[resourceId] || 0;
     return Math.max(0, baseQuantity - localQuantity);
+  };
+
+  // Appliquer le badge de prix unitaire sélectionné à un ingrédient (par nom)
+  const applyPriceBadgeToIngredient = (ingredientName: string) => {
+    if (!selectedPriceBadge) return;
+    const badge = priceBadges.find((b) => b.id === selectedPriceBadge);
+    if (!badge) return;
+    setIngredientUnitPrices((prev) => ({ ...prev, [ingredientName]: badge.price }));
   };
 
   return (
@@ -1110,6 +1142,57 @@ export default function DailyPlanPage() {
           <CardDescription>
             Liste complète de tous les ingrédients à collecter : ressources non craftables + ingrédients des chaînes de fabrication
           </CardDescription>
+          {/* Badges de prix moyens unitaires (sélection puis clic sur carte ingrédient pour appliquer) */}
+          <div className="mt-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {priceBadges.map((badge) => (
+                <Badge
+                  key={badge.id}
+                  variant={selectedPriceBadge === badge.id ? "default" : "outline"}
+                  className="cursor-pointer h-7 px-3 border-[1.5px]"
+                  style={
+                    selectedPriceBadge === badge.id
+                      ? {
+                          backgroundColor: 'var(--kamas-color)',
+                          color: '#000000',
+                          borderColor: 'var(--kamas-color)'
+                        }
+                      : {
+                          borderColor: 'var(--kamas-color)',
+                          color: 'var(--kamas-color)',
+                          backgroundColor: 'transparent'
+                        }
+                  }
+                  onClick={() =>
+                    setSelectedPriceBadge(selectedPriceBadge === badge.id ? null : badge.id)
+                  }
+                >
+                  {badge.label}
+                </Badge>
+              ))}
+              <Input
+                placeholder="Créer un badge (ex: 1000)"
+                value={newPriceBadgeInput}
+                onChange={(e) => setNewPriceBadgeInput(e.target.value)}
+                className="w-40 h-7 text-sm"
+                type="number"
+                onKeyDown={(e) => e.key === 'Enter' && createPriceBadge()}
+              />
+              <Button
+                onClick={createPriceBadge}
+                size="sm"
+                variant="outline"
+                className="h-7"
+              >
+                +
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {selectedPriceBadge
+                ? "Cliquez sur un ingrédient pour appliquer le prix unitaire sélectionné"
+                : "Sélectionnez un badge de prix puis cliquez sur un ingrédient"}
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {(() => {
@@ -1199,6 +1282,12 @@ export default function DailyPlanPage() {
             const ingredientsList = Array.from(allIngredients.values())
               .sort((a, b) => b.totalQuantity - a.totalQuantity);
 
+            // Calcul du coût total si achat de toutes les ressources (en Kamas)
+            const totalCost = ingredientsList.reduce((sum, ing) => {
+              const unit = ingredientUnitPrices[ing.name] || 0;
+              return sum + unit * ing.totalQuantity;
+            }, 0);
+
             return ingredientsList.length === 0 ? (
               <div className="text-center py-8">
                 <Calculator className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -1208,38 +1297,73 @@ export default function DailyPlanPage() {
                 </p>
               </div>
             ) : (
-              <ScrollArea className="h-[400px]">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {ingredientsList.map((ingredient, index) => (
-                    <Card key={index} className="hover:shadow-lg hover:bg-secondary transition-all h-25 py-0 justify-center relative">
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
-                            {ingredient.image_url ? (
-                              <img 
-                                src={ingredient.image_url} 
-                                alt={ingredient.name}
-                                className="w-10 h-10 object-contain"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium break-words">{ingredient.name}</h3>
-                            <div className="text-lg font-bold mt-2 text-primary">
-                              {ingredient.totalQuantity.toLocaleString()}
+              <>
+                <ScrollArea className="h-[400px]">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {ingredientsList.map((ingredient, index) => (
+                      <Card
+                        key={index}
+                        className="hover:shadow-lg hover:bg-secondary transition-all h-25 py-0 justify-center relative cursor-pointer"
+                        onClick={() => {
+                          if (selectedPriceBadge) {
+                            applyPriceBadgeToIngredient(ingredient.name);
+                          }
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                              {ingredient.image_url ? (
+                                <img
+                                  src={ingredient.image_url}
+                                  alt={ingredient.name}
+                                  className="w-10 h-10 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium break-words">{ingredient.name}</h3>
+                              <div className="text-lg font-bold mt-2 text-primary">
+                                {ingredient.totalQuantity.toLocaleString()}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                        {/* Badge de prix unitaire appliqué */}
+                        {ingredientUnitPrices[ingredient.name] > 0 && (
+                          <div className="absolute bottom-2 right-2">
+                            <Badge
+                              variant="secondary"
+                              className="text-xs"
+                              style={{
+                                backgroundColor: 'var(--kamas-color)',
+                                color: '#000000',
+                              }}
+                            >
+                              {ingredientUnitPrices[ingredient.name].toLocaleString()} K
+                            </Badge>
+                          </div>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
+                {/* Total en bas du bilan des courses */}
+                <div className="mt-4 flex justify-end">
+                  <Badge
+                    variant="secondary"
+                    className="text-sm"
+                    style={{ backgroundColor: 'var(--kamas-color)', color: '#000000' }}
+                  >
+                    Prix total si achat: {totalCost.toLocaleString()} K
+                  </Badge>
                 </div>
-              </ScrollArea>
+              </>
             );
           })()}
         </CardContent>
