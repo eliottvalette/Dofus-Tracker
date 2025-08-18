@@ -797,11 +797,25 @@ export default function DailyPlanPage() {
                             <Input
                               type="number"
                               min="1"
-                              value={planItem.dailyQuantity}
+                              value={planItem.dailyQuantity || ''}
                               onChange={(e) => {
-                                const newValue = parseInt(e.target.value) || 1;
-                                // Empêcher les valeurs négatives
-                                if (newValue < 1) return;
+                                const inputValue = e.target.value;
+                                // Permettre la valeur vide
+                                if (inputValue === '') {
+                                  setDailyPlan(prev => 
+                                    prev.map(item => 
+                                      item.id === planItem.id 
+                                        ? { ...item, dailyQuantity: 0 }
+                                        : item
+                                    )
+                                  );
+                                  return;
+                                }
+                                
+                                const newValue = parseInt(inputValue);
+                                // Empêcher les valeurs négatives ou NaN
+                                if (isNaN(newValue) || newValue < 1) return;
+                                
                                 // Mettre à jour localement sans sauvegarder
                                 setDailyPlan(prev => 
                                   prev.map(item => 
@@ -813,6 +827,11 @@ export default function DailyPlanPage() {
                               }}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
+                                  if (!planItem.dailyQuantity || planItem.dailyQuantity < 1) {
+                                    // Afficher une erreur si la valeur est invalide
+                                    alert('La quantité doit être supérieure à 0');
+                                    return;
+                                  }
                                   updateDailyQuantity(planItem.id, planItem.dailyQuantity);
                                 }
                               }}
@@ -821,7 +840,14 @@ export default function DailyPlanPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateDailyQuantity(planItem.id, planItem.dailyQuantity)}
+                              onClick={() => {
+                                if (!planItem.dailyQuantity || planItem.dailyQuantity < 1) {
+                                  // Afficher une erreur si la valeur est invalide
+                                  alert('La quantité doit être supérieure à 0');
+                                  return;
+                                }
+                                updateDailyQuantity(planItem.id, planItem.dailyQuantity);
+                              }}
                             >
                               <Check className="h-4 w-4" />
                             </Button>
@@ -903,23 +929,20 @@ export default function DailyPlanPage() {
                             <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 mt-4">
                           <h3 className="font-medium truncate">{resource.name}</h3>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {resource.recipes.map(recipe => recipe.craftName).join(", ")}
-                          </div>
-                          <div className="text-lg font-bold mt-2 text-primary">
+                          <div className="text-lg font-bold mt-1 text-primary">
                             {resource.totalQuantity.toLocaleString()}
                           </div>
-                          {resource.isCraftable && (
-                            <Badge 
-                              variant={selectedResources.has(resource.id) ? "default" : "secondary"} 
-                              className="text-xs mt-1"
-                            >
-                              {selectedResources.has(resource.id) ? "À fabriquer" : "Craftable"}
-                            </Badge>
-                          )}
                         </div>
+                        {resource.isCraftable && (
+                          <Badge 
+                            variant={selectedResources.has(resource.id) ? "default" : "secondary"} 
+                            className="text-xs absolute left-1/2 -translate-x-1/2 bottom-[-8]"
+                          >
+                            {selectedResources.has(resource.id) ? "À fabriquer" : "Craftable"}
+                          </Badge>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
