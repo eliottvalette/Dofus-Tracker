@@ -16658,7 +16658,6 @@ item_id,item_name,item_slug,category,has_recipe,job,job_level,ingredient_id,ingr
 11560,Pierre de Terre,pierre-terre,ressources,True,,,11548,Deuxième Fragment de Terre,Pierre brute,1.0
 11560,Pierre de Terre,pierre-terre,ressources,True,,,11549,Troisième Fragment de Terre,Pierre brute,1.0
 11560,Pierre de Terre,pierre-terre,ressources,True,,,11550,Quatrième Fragment de Terre,Pierre brute,1.0
-2114,Aliment inconnu,aliment-inconnu,ressources,False,,,,,,
 14290,Alliogemme,alliogemme,ressources,True,MineurNiveau,100.0,305,Dent de Wabbit,Os,10.0
 14290,Alliogemme,alliogemme,ressources,True,MineurNiveau,100.0,1575,Guildalogemme,Pierre précieuse,1.0
 14290,Alliogemme,alliogemme,ressources,True,MineurNiveau,100.0,2502,Papatte de Croc Gland,Patte,10.0

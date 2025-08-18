@@ -38590,13 +38590,6 @@
         "type": "Farine",
         "level": "Niv. 1"
     },
-    "Aliment inconnu": {
-        "id": "15000",
-        "name": "Aliment inconnu",
-        "category": "ressources",
-        "type": "Ressources diverses",
-        "level": "Niv. 1"
-    },
     "Pastèque de voyage": {
         "id": "170669",
         "name": "Pastèque de voyage",

@@ -96056,15 +96056,6 @@
         "ingredient_ids": [],
         "quantities": []
     },
-    "Aliment inconnu": {
-        "category": "ressources",
-        "has_recipe": false,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
-    },
     "Alliogemme": {
         "category": "ressources",
         "has_recipe": true,
