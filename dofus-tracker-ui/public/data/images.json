@@ -708,6 +708,7 @@
         "Bouquet de Roses démoniaques": "images/6047.w40h40.png"
     },
     "consommables": {
+        "Potion de destination inconnue": "images/999999.w40h40.png",
         "Bouteille de Cocalane": "images/79178.w40h40.png",
         "Parchemin de Diamant": "images/171663.w40h40.png",
         "Poitrine de Glourson fumée": "images/69147.w40h40.png",

@@ -68189,6 +68189,27 @@
             2
         ]
     },
+    "Potion de destination inconnue": {
+        "category": "consommables",
+        "has_recipe": true,
+        "job": "AlchimisteNiveau",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Pince de Crabe",
+            "Gland",
+            "Cerise"
+        ],
+        "ingredient_ids": [
+            47051,
+            58065,
+            46265
+        ],
+        "quantities": [
+            1,
+            1,
+            1
+        ]
+    },
     "Potion d'oubli : Mot Interdit": {
         "category": "consommables",
         "has_recipe": false,

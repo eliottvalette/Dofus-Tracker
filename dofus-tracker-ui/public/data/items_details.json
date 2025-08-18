@@ -6,6 +6,13 @@
         "type": "Marteau",
         "level": "Niv. 200"
     },
+    "Potion de destination inconnue": {
+        "id": "999999",
+        "name": "Potion de destination inconnue",
+        "category": "consommables",
+        "type": "Potion",
+        "level": "Niv. 100"
+    },
     "Izusu la pelle Endormie": {
         "id": "171725",
         "name": "Izusu la pelle Endormie",
