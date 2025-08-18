@@ -129,7 +129,10 @@ export default function DailyPlanPage() {
     });
     const jobsArray = Array.from(jobsSet).sort();
     setAvailableJobs(jobsArray);
-  }, [craftRecipes, selectedJobs.size]);
+    
+    // Sélectionner tous les métiers par défaut
+    setSelectedJobs(new Set(jobsArray));
+  }, [craftRecipes]);
 
   // Charger les données de craft
   const loadCraftRecipes = useCallback(async () => {
@@ -929,9 +932,9 @@ export default function DailyPlanPage() {
                             <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
                           )}
                         </div>
-                        <div className="flex-1 min-w-0 mt-4">
-                          <h3 className="font-medium truncate">{resource.name}</h3>
-                          <div className="text-lg font-bold mt-1 text-primary">
+                        <div className="flex-1 min-w-0 mt-2">
+                          <h3 className="font-medium break-words">{resource.name}</h3>
+                          <div className="text-lg font-bold mt-1 text-primary text-right">
                             {resource.totalQuantity.toLocaleString()}
                           </div>
                         </div>
@@ -1026,7 +1029,7 @@ export default function DailyPlanPage() {
                                   )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{ingredient.name}</p>
+                                  <p className="text-sm font-medium break-words">{ingredient.name}</p>
                                   <p className="text-xs text-muted-foreground">
                                     {ingredient.quantity.toLocaleString()} items
                                   </p>
@@ -1146,7 +1149,7 @@ export default function DailyPlanPage() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium truncate">{ingredient.name}</h3>
+                            <h3 className="font-medium break-words">{ingredient.name}</h3>
                             <div className="text-lg font-bold mt-2 text-primary">
                               {ingredient.totalQuantity.toLocaleString()}
                             </div>
