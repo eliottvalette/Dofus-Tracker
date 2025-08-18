@@ -103,16 +103,43 @@ def build_craft_json():
         
         # Prendre les données de base (même pour tous les ingrédients)
         first_row = item_data.iloc[0]
-        
+
         has_recipe = bool(first_row['has_recipe'])
-        has_job = not pd.isna(first_row['job'])
+        # Éviter toute mutation d'une vue de DataFrame (SettingWithCopyWarning)
+        job_from_row = first_row['job']
+        job_level_from_row = first_row['job_level']
+        has_job = not pd.isna(job_from_row)
+
         
+        if not has_job and 'Graine' in item_name:
+            has_job = True
+            job_from_row = 'Paysan'
+            job_level_from_row = 1
+            
+        if not has_job and ('Farine' in item_name or 'gely' in item_name):
+            has_job = True
+            job_from_row = 'Boulanger'
+            job_level_from_row = 1
+
+        if not has_job and ('Potion' in item_name or 'Soin' in item_name):
+            has_job = True
+            job_from_row = 'Alchimiste'
+            job_level_from_row = 1
+
+        if not has_job and ('vidé' in item_name):
+            has_job = True
+            job_from_row = 'Pêcheur'
+            job_level_from_row = 1
+
+        if not has_job and ('Rune ' in item_name or 'Fantôme' in item_name or 'Pierre d' in item_name):
+            has_recipe = False
+
         if has_recipe and has_job:
             craft_data[item_name] = {
                 "category": first_row['category'],
                 "has_recipe": has_recipe,
-                "job": first_row['job'],
-                "job_level": float(first_row['job_level']),
+                "job": job_from_row,
+                "job_level": float(job_level_from_row),
                 "ingredient_names": item_data['ingredient_name'].dropna().tolist(),
                 "ingredient_ids": [int(id) for id in item_data['ingredient_id'].dropna().tolist()],
                 "quantities": [int(qty) for qty in item_data['quantity'].dropna().tolist()]

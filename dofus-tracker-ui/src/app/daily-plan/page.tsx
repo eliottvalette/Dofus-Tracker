@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, Package, Calculator, Trash2, Heart, HelpCircle, Search, Check, X } from "lucide-react";
+import { Calendar, Package, Calculator, Trash2, Heart, HelpCircle, Search, Check } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -237,11 +237,12 @@ export default function DailyPlanPage() {
         const dailyPlanSnapshot = await getDocs(dailyPlanRef);
         const dailyPlanData: DailyPlanItem[] = [];
         
-        dailyPlanSnapshot.forEach((doc) => {
-          const data = doc.data();
+        dailyPlanSnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
           // Utiliser l'ID du document Firestore et supprimer l'ancien champ id s'il existe
-          const { id: _oldId, ...cleanData } = data;
-          dailyPlanData.push({ id: doc.id, ...cleanData } as DailyPlanItem);
+          const cleanData: Record<string, unknown> = { ...data };
+          delete (cleanData as { id?: unknown }).id;
+          dailyPlanData.push({ id: docSnap.id, ...(cleanData as Omit<DailyPlanItem, 'id'>) });
         });
         
         setDailyPlan(dailyPlanData);
@@ -919,7 +920,7 @@ export default function DailyPlanPage() {
             </div>
           ) : (
             <ScrollArea className="h-[400px]">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                 {resourceRequirements.map((resource) => (
                   <Card 
                     key={resource.id} 
@@ -948,29 +949,31 @@ export default function DailyPlanPage() {
                         </div>
                         <div className="flex-1 min-w-0 mt-2">
                           <h3 className="font-medium break-words">{resource.name}</h3>
-                          <div className="flex items-center gap-2 mt-2">
-                            <div className="text-sm text-muted-foreground">Stock local:</div>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={localResourceQuantities[resource.id] || ''}
-                              onChange={(e) => {
-                                const inputValue = e.target.value;
-                                if (inputValue === '') {
-                                  updateLocalResourceQuantity(resource.id, 0);
-                                  return;
-                                }
-                                const newValue = parseInt(inputValue);
-                                if (!isNaN(newValue) && newValue >= 0) {
-                                  updateLocalResourceQuantity(resource.id, newValue);
-                                }
-                              }}
-                              className="w-20 text-center text-xs"
-                              placeholder="0"
-                            />
-                          </div>
-                          <div className="text-lg font-bold mt-1 text-primary text-right">
+                          <div className="flex flex-row justify-between">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="text-sm text-muted-foreground">Stock local:</div>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={localResourceQuantities[resource.id] || ''}
+                                onChange={(e) => {
+                                  const inputValue = e.target.value;
+                                  if (inputValue === '') {
+                                    updateLocalResourceQuantity(resource.id, 0);
+                                    return;
+                                  }
+                                  const newValue = parseInt(inputValue);
+                                  if (!isNaN(newValue) && newValue >= 0) {
+                                    updateLocalResourceQuantity(resource.id, newValue);
+                                  }
+                                }}
+                                className="w-20 text-center text-xs"
+                                placeholder="0"
+                              />
+                            </div>
+                            <div className="text-lg font-bold text-primary">
                             {getFinalResourceQuantity(resource.id, resource.totalQuantity).toLocaleString()}
+                          </div>
                           </div>
                           {localResourceQuantities[resource.id] > 0 && (
                             <div className="text-xs text-muted-foreground text-right">
@@ -1008,7 +1011,7 @@ export default function DailyPlanPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {resourceRequirements.filter(r => r.isCraftable && r.ingredientChain && r.ingredientChain.length > 0 && selectedResources.has(r.id)).length === 0 ? (
+          {resourceRequirements.filter(r => r.isCraftable && r.ingredientChain && r.ingredientChain.length > 0 && selectedResources.has(r.id) && getFinalResourceQuantity(r.id, r.totalQuantity) > 0).length === 0 ? (
             <div className="text-center py-8">
               <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Aucune chaîne de fabrication à afficher</p>
@@ -1020,7 +1023,7 @@ export default function DailyPlanPage() {
             <ScrollArea className="h-[400px]">
               <div className="space-y-4">
                 {resourceRequirements
-                  .filter(r => r.isCraftable && r.ingredientChain && r.ingredientChain.length > 0 && selectedResources.has(r.id))
+                  .filter(r => r.isCraftable && r.ingredientChain && r.ingredientChain.length > 0 && selectedResources.has(r.id) && getFinalResourceQuantity(r.id, r.totalQuantity) > 0)
                   .map((resource) => (
                     <Card key={`super-${resource.id}`} className="hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
@@ -1043,7 +1046,7 @@ export default function DailyPlanPage() {
                             <div>
                               <h3 className="font-medium">{resource.name}</h3>
                               <p className="text-sm text-muted-foreground">
-                                {resource.totalQuantity.toLocaleString()} items nécessaires
+                                {getFinalResourceQuantity(resource.id, resource.totalQuantity).toLocaleString()} items nécessaires
                               </p>
                             </div>
                           </div>
@@ -1052,30 +1055,40 @@ export default function DailyPlanPage() {
                         <div className="space-y-2">
                           <p className="text-sm font-medium text-muted-foreground">Ingrédients à collecter :</p>
                           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                            {resource.ingredientChain!.map((ingredient, index) => (
-                              <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
-                                  {ingredient.image_url ? (
-                                    <img 
-                                      src={ingredient.image_url} 
-                                      alt={ingredient.name}
-                                      className="w-6 h-6 object-contain"
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="w-6 h-6 bg-muted-foreground/20 rounded" />
-                                  )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium break-words">{ingredient.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {ingredient.quantity.toLocaleString()} items
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
+                            {(() => {
+                              const neededAfterStock = getFinalResourceQuantity(resource.id, resource.totalQuantity);
+                              const multiplier = resource.totalQuantity > 0 ? (neededAfterStock / resource.totalQuantity) : 0;
+                              return resource.ingredientChain!
+                                .map((ingredient) => ({
+                                  ...ingredient,
+                                  adjustedQuantity: Math.ceil(ingredient.quantity * multiplier),
+                                }))
+                                .filter((ingredient) => ingredient.adjustedQuantity > 0)
+                                .map((ingredient, index) => (
+                                  <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                                      {ingredient.image_url ? (
+                                        <img 
+                                          src={ingredient.image_url} 
+                                          alt={ingredient.name}
+                                          className="w-6 h-6 object-contain"
+                                          onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                          }}
+                                        />
+                                      ) : (
+                                        <div className="w-6 h-6 bg-muted-foreground/20 rounded" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium break-words">{ingredient.name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {ingredient.adjustedQuantity.toLocaleString()} items
+                                      </p>
+                                    </div>
+                                  </div>
+                                ));
+                            })()}
                           </div>
                         </div>
                       </CardContent>
@@ -1109,11 +1122,17 @@ export default function DailyPlanPage() {
               sources: string[];
             }>();
 
+            // Pré-calculer les besoins ajustés après stock pour chaque ressource
+            const adjustedNeeds = new Map<string, number>();
+            resourceRequirements.forEach((r) => {
+              adjustedNeeds.set(r.id, getFinalResourceQuantity(r.id, r.totalQuantity));
+            });
+
             // Ajouter les ressources non craftables
             resourceRequirements
               .filter(r => !r.isCraftable)
               .forEach(resource => {
-                const finalQuantity = getFinalResourceQuantity(resource.id, resource.totalQuantity);
+                const finalQuantity = adjustedNeeds.get(resource.id) ?? resource.totalQuantity;
                 if (finalQuantity > 0) {
                   allIngredients.set(resource.name, {
                     name: resource.name,
@@ -1129,24 +1148,29 @@ export default function DailyPlanPage() {
             resourceRequirements
               .filter(r => r.isCraftable && selectedResources.has(r.id) && r.ingredientChain)
               .forEach(resource => {
+                const neededAfterStock = adjustedNeeds.get(resource.id) ?? resource.totalQuantity;
+                if (neededAfterStock <= 0 || resource.totalQuantity <= 0) return;
+                const multiplier = neededAfterStock / resource.totalQuantity;
+
                 resource.ingredientChain!.forEach(ingredient => {
-                  // Chercher si cet ingrédient est déjà dans les ressources
+                  // Quantité ajustée pour l'ingrédient en fonction du besoin réel après stock
+                  let adjustedQuantity = Math.ceil(ingredient.quantity * multiplier);
+
+                  // Si l'ingrédient existe aussi comme ressource principale, appliquer son stock propre
                   const existingResource = resourceRequirements.find(r => r.name === ingredient.name);
-                  let finalQuantity = ingredient.quantity;
-                  
                   if (existingResource) {
-                    finalQuantity = getFinalResourceQuantity(existingResource.id, ingredient.quantity);
+                    adjustedQuantity = getFinalResourceQuantity(existingResource.id, adjustedQuantity);
                   }
-                  
-                  if (finalQuantity > 0) {
+
+                  if (adjustedQuantity > 0) {
                     if (allIngredients.has(ingredient.name)) {
                       const existing = allIngredients.get(ingredient.name)!;
-                      existing.totalQuantity += finalQuantity;
+                      existing.totalQuantity += adjustedQuantity;
                       existing.sources.push(...resource.recipes.map(r => r.craftName));
                     } else {
                       allIngredients.set(ingredient.name, {
                         name: ingredient.name,
-                        totalQuantity: finalQuantity,
+                        totalQuantity: adjustedQuantity,
                         image_url: ingredient.image_url,
                         isCraftable: ingredient.isCraftable,
                         sources: resource.recipes.map(r => r.craftName)
@@ -1160,13 +1184,16 @@ export default function DailyPlanPage() {
             resourceRequirements
               .filter(r => r.isCraftable && !selectedResources.has(r.id))
               .forEach(resource => {
-                allIngredients.set(resource.name, {
-                  name: resource.name,
-                  totalQuantity: resource.totalQuantity,
-                  image_url: resource.image_url,
-                  isCraftable: true,
-                  sources: resource.recipes.map(r => r.craftName)
-                });
+                const finalQuantity = adjustedNeeds.get(resource.id) ?? resource.totalQuantity;
+                if (finalQuantity > 0) {
+                  allIngredients.set(resource.name, {
+                    name: resource.name,
+                    totalQuantity: finalQuantity,
+                    image_url: resource.image_url,
+                    isCraftable: true,
+                    sources: resource.recipes.map(r => r.craftName)
+                  });
+                }
               });
 
             const ingredientsList = Array.from(allIngredients.values())

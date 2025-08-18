@@ -68633,11 +68633,17 @@
     "Vertgely": {
         "category": "consommables",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Gelée à la Menthe"
+        ],
+        "ingredient_ids": [
+            369
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Ancien de la Toundra": {
         "category": "consommables",
@@ -72143,11 +72149,23 @@
     "Potion de soin minimale": {
         "category": "consommables",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Alchimiste",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Blé",
+            "Feuille de Menthe Sauvage",
+            "Goujon"
+        ],
+        "ingredient_ids": [
+            289,
+            380,
+            1782
+        ],
+        "quantities": [
+            1,
+            1,
+            1
+        ]
     },
     "Potion d'oubli : Odorat": {
         "category": "consommables",
@@ -72752,11 +72770,17 @@
     "Blugely": {
         "category": "consommables",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Gelée Bleutée"
+        ],
+        "ingredient_ids": [
+            757
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Ornement Sherajah éveillé": {
         "category": "consommables",
@@ -73520,11 +73544,17 @@
     "Rougely": {
         "category": "consommables",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Gelée à la Fraise"
+        ],
+        "ingredient_ids": [
+            368
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Potion d'oubli : Glyphe d'immobilisation": {
         "category": "consommables",
@@ -83750,11 +83780,20 @@
     "Potion très odorante": {
         "category": "consommables",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Alchimiste",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Fleur de Dodus",
+            "Pastèque"
+        ],
+        "ingredient_ids": [
+            15743,
+            15744
+        ],
+        "quantities": [
+            1,
+            2
+        ]
     },
     "Potion d'oubli : Brokle": {
         "category": "consommables",
@@ -85423,7 +85462,7 @@
     },
     "Fantôme de Bilby": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -85432,7 +85471,7 @@
     },
     "Fantôme d'Atouin": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -85495,7 +85534,7 @@
     },
     "Fantôme de Chauffe-souris": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -85667,11 +85706,17 @@
     "Greu-vette Horreur vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Greu-vette Horreur"
+        ],
+        "ingredient_ids": [
+            1786
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Rune Fo": {
         "category": "ressources",
@@ -85720,7 +85765,7 @@
     },
     "Rune Pa Ini": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -85729,7 +85774,7 @@
     },
     "Fantôme de Bouloute d'Halouine": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -85846,7 +85891,7 @@
     },
     "Fantôme de Boune Bontarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -85990,7 +86035,7 @@
     },
     "Rune Pa Sa": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86008,7 +86053,7 @@
     },
     "Fantôme de Bounax": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86017,7 +86062,7 @@
     },
     "Fantôme Walk": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86044,7 +86089,7 @@
     },
     "Fantôme de Racoune": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86125,7 +86170,7 @@
     },
     "Fantôme de Chacha Mesuré": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86233,7 +86278,7 @@
     },
     "Fantôme de Glub": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86413,7 +86458,7 @@
     },
     "Fantôme de Cromeugnon": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86422,7 +86467,7 @@
     },
     "Fantôme de Kanigloups": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86495,11 +86540,17 @@
     "Poisson Tigre vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Poisson-Tigre"
+        ],
+        "ingredient_ids": [
+            1762
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Alliage Ivre": {
         "category": "ressources",
@@ -86531,24 +86582,36 @@
     "Farine d'Avoine Aurifère": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Avoine Aurifère"
+        ],
+        "ingredient_ids": [
+            2036
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Farine de Houblon": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Houblon"
+        ],
+        "ingredient_ids": [
+            401
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Fantôme de Péki": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86665,7 +86728,7 @@
     },
     "Fantôme de Serpète": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86728,7 +86791,7 @@
     },
     "Fantôme de Kroliméa": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86746,7 +86809,7 @@
     },
     "Fantôme de Koalak Sanguin": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -86815,7 +86878,7 @@
     },
     "Fantôme de Tirubim": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87049,7 +87112,7 @@
     },
     "Fantôme de Boune Mesuré": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87058,7 +87121,7 @@
     },
     "Fantôme de Kwaltess": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87103,7 +87166,7 @@
     },
     "Fantôme de Drakopin": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87256,7 +87319,7 @@
     },
     "Fantôme d'Ecumouth": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87275,11 +87338,17 @@
     "Raie de Farle vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Raie de Farle"
+        ],
+        "ingredient_ids": [
+            1788
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Goujon Kiye": {
         "category": "ressources",
@@ -87328,7 +87397,7 @@
     },
     "Rune Pa Pui": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87346,7 +87415,7 @@
     },
     "Rune Pa So": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87559,7 +87628,7 @@
     },
     "Rune Ra Fo": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87722,11 +87791,17 @@
     "Poisson Igloo vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Poisson Igloo"
+        ],
+        "ingredient_ids": [
+            1754
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Pétale de Rose Démoniaque": {
         "category": "ressources",
@@ -87829,7 +87904,7 @@
     },
     "Rune Pa Do Eau": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -87992,11 +88067,17 @@
     "Brochet Tupe-Halett vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Brochet Tupe-Halett"
+        ],
+        "ingredient_ids": [
+            1849
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Sacrum magistral": {
         "category": "ressources",
@@ -88090,7 +88171,7 @@
     },
     "Fantôme de Tofoudre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -88126,7 +88207,7 @@
     },
     "Fantôme de Tofüm": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -88154,11 +88235,17 @@
     "Bar Iton vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Bar Iton"
+        ],
+        "ingredient_ids": [
+            1792
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Feuille de ronce d'Hestia": {
         "category": "ressources",
@@ -88232,15 +88319,21 @@
     "Truite Ancestrale vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Truite Ancestrale"
+        ],
+        "ingredient_ids": [
+            1846
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Fantôme de Gerbouille": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -88276,7 +88369,7 @@
     },
     "Fantôme de Gelutin": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -88415,11 +88508,17 @@
     "Graine de Frostiz": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Paysan",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Frostiz"
+        ],
+        "ingredient_ids": [
+            11109
+        ],
+        "quantities": [
+            5
+        ]
     },
     "Viande de Sylargh Conservée": {
         "category": "ressources",
@@ -88459,7 +88558,7 @@
     },
     "Fantôme de Pykur": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -88549,7 +88648,7 @@
     },
     "Rune Ra Ini": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -88631,11 +88730,17 @@
     "Brochet vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Brochet"
+        ],
+        "ingredient_ids": [
+            1847
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Galet rutilant": {
         "category": "ressources",
@@ -88849,7 +88954,7 @@
     },
     "Rune Pa Ré Air": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89056,7 +89161,7 @@
     },
     "Fantôme de Fosfo": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89212,7 +89317,7 @@
     },
     "Fantôme de Chacha Bontarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89387,11 +89492,17 @@
     "Greu-vette vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Greu-Vette"
+        ],
+        "ingredient_ids": [
+            598
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Hormone de Tifoux Tigré": {
         "category": "ressources",
@@ -89422,7 +89533,7 @@
     },
     "Fantôme de Chacharge": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89512,7 +89623,7 @@
     },
     "Fantôme de Mosk": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89548,7 +89659,7 @@
     },
     "Rune Ra Vi": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89557,7 +89668,7 @@
     },
     "Fantôme de Tofu Ventru": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89602,7 +89713,7 @@
     },
     "Fantôme de Gupin": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89699,15 +89810,21 @@
     "Poisson-Chaton vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Poisson-Chaton"
+        ],
+        "ingredient_ids": [
+            603
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Rune Ra Ine": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89821,7 +89938,7 @@
     },
     "Rune Ra Sa": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89857,7 +89974,7 @@
     },
     "Pierre de Feu": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -89980,7 +90097,7 @@
     },
     "Fantôme de Bisouglours": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -90044,11 +90161,17 @@
     "Sardine Brillante vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Sardine Brillante"
+        ],
+        "ingredient_ids": [
+            1805
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Carapace de Scaratos": {
         "category": "ressources",
@@ -90373,7 +90496,7 @@
     },
     "Rune Pa Ré Neutre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -90442,7 +90565,7 @@
     },
     "Rune Pa Age": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -90469,7 +90592,7 @@
     },
     "Rune Pa Ré Cri": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -90616,7 +90739,7 @@
     },
     "Pierre d'Air": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -90698,11 +90821,17 @@
     "Graine de Chanvre": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Paysan",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Fleur de Chanvre"
+        ],
+        "ingredient_ids": [
+            428
+        ],
+        "quantities": [
+            5
+        ]
     },
     "Viande d'Oiseau Conservée ***": {
         "category": "ressources",
@@ -90848,11 +90977,17 @@
     "Poisskaille Givré vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Poisskaille Givré"
+        ],
+        "ingredient_ids": [
+            11500
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Tube longiforme": {
         "category": "ressources",
@@ -90928,7 +91063,7 @@
     },
     "Rune Pa Ré Pou": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91064,11 +91199,17 @@
     "Farine de Lin magique": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Lin Tempête"
+        ],
+        "ingredient_ids": [
+            2026
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Semelle de Klime": {
         "category": "ressources",
@@ -91291,7 +91432,7 @@
     },
     "Fantôme de Fotome": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91300,7 +91441,7 @@
     },
     "Fantôme de Pioute Violet": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91309,7 +91450,7 @@
     },
     "Fantôme de Homlett": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91441,7 +91582,7 @@
     },
     "Fantôme de Vampyrette": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91492,7 +91633,7 @@
     },
     "Fantôme de Chauffe-souris d'Halouine": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91636,7 +91777,7 @@
     },
     "Fantôme de Médugivre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91672,7 +91813,7 @@
     },
     "Fantôme de Tofu Brakmarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91744,7 +91885,7 @@
     },
     "Fantôme de Nomoon": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91843,7 +91984,7 @@
     },
     "Fantôme de Tofu Mesuré": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91882,7 +92023,7 @@
     },
     "Fantôme Ross": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -91991,11 +92132,17 @@
     "Farine de Malt": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Malt"
+        ],
+        "ingredient_ids": [
+            405
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Viande de Crocodaille Conservée **": {
         "category": "ressources",
@@ -92077,7 +92224,7 @@
     },
     "Rune Pa Tac": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92158,7 +92305,7 @@
     },
     "Fantôme de Pioute Rouge": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92237,11 +92384,17 @@
     "Goujon Kiye vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Goujon Kiye"
+        ],
+        "ingredient_ids": [
+            1790
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Coupon de l'attraction Pile ou Face": {
         "category": "ressources",
@@ -92431,7 +92584,7 @@
     },
     "Rune Pa Do Neutre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92563,7 +92716,7 @@
     },
     "Fantôme de Boskito": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92581,7 +92734,7 @@
     },
     "Fantôme Marcassin de combat": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92617,7 +92770,7 @@
     },
     "Fantôme de Chienchien Roux": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92719,7 +92872,7 @@
     },
     "Fantôme de Godron Bontarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92728,7 +92881,7 @@
     },
     "Pierre d'Eau": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92794,7 +92947,7 @@
     },
     "Fantôme de Chacha Poisseux": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -92848,7 +93001,7 @@
     },
     "Rune Pa Pod": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -93011,11 +93164,17 @@
     "Kralamoure Unique vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Kralamoure Unique"
+        ],
+        "ingredient_ids": [
+            1799
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Crâne de Wabbit Squelette": {
         "category": "ressources",
@@ -93056,11 +93215,17 @@
     "Farine de Riz": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Riz"
+        ],
+        "ingredient_ids": [
+            7018
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Essence de Gelée Royale": {
         "category": "ressources",
@@ -93349,7 +93514,7 @@
     },
     "Fantôme de Bouloute": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -93385,7 +93550,7 @@
     },
     "Rune Pa Fui": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -93467,11 +93632,17 @@
     "Crabe Sourimi exotique vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Crabe Sourimi Exotique"
+        ],
+        "ingredient_ids": [
+            1759
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Hormone de Godron Mesuré": {
         "category": "ressources",
@@ -93557,11 +93728,17 @@
     "Truite vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Truite"
+        ],
+        "ingredient_ids": [
+            1844
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Hormone de Pholaine": {
         "category": "ressources",
@@ -93593,11 +93770,17 @@
     "Farine de Blé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Blé"
+        ],
+        "ingredient_ids": [
+            289
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Clef du Terrier du Wa Wabbit": {
         "category": "ressources",
@@ -93610,7 +93793,7 @@
     },
     "Fantôme de Mini Wa": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -93619,7 +93802,7 @@
     },
     "Fantôme de Hurledent": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -93670,7 +93853,7 @@
     },
     "Fantôme de Godron Charmant": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -93790,7 +93973,7 @@
     },
     "Fantôme de Tofu Bontarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -93982,7 +94165,7 @@
     },
     "Rune Ra Age": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -94117,7 +94300,7 @@
     },
     "Fantôme de Pioute Rose": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -94127,11 +94310,17 @@
     "Farine d'Orge": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Orge"
+        ],
+        "ingredient_ids": [
+            400
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Hormone de Meulourd": {
         "category": "ressources",
@@ -94180,7 +94369,7 @@
     },
     "Fantôme de Chacha Ventru": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -94387,7 +94576,7 @@
     },
     "Fantôme d'El Scarador": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -94600,7 +94789,7 @@
     },
     "Fantôme de Goultus": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -94999,7 +95188,7 @@
     },
     "Rune Pa Fo": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -95035,7 +95224,7 @@
     },
     "Fantôme Chacha Tigré": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -95302,7 +95491,7 @@
     },
     "Rune Pa Vi": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -95438,15 +95627,21 @@
     "Farine de Frostiz soufflé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Frostiz soufflé"
+        ],
+        "ingredient_ids": [
+            11499
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Fantôme de Shushu de Rushu": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -95546,15 +95741,21 @@
     "Chaton-perche vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Chaton-Perche"
+        ],
+        "ingredient_ids": [
+            1803
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Fantôme de Kougnard": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -95669,11 +95870,17 @@
     "Poisson pané vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Poisson Pané"
+        ],
+        "ingredient_ids": [
+            1750
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Clef de la Bibliothèque du Maître Corbac": {
         "category": "ressources",
@@ -95701,7 +95908,7 @@
     },
     "Fantôme de Petit Chienchien Noir": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -95710,7 +95917,7 @@
     },
     "Fantôme de Toukancre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -95738,11 +95945,17 @@
     "Piraniak vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Piraniak"
+        ],
+        "ingredient_ids": [
+            16045
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Cuir de Givrefoux": {
         "category": "ressources",
@@ -95809,7 +96022,7 @@
     },
     "Rune Pa Prospe": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -95836,7 +96049,7 @@
     },
     "Pierre de Terre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -96016,7 +96229,7 @@
     },
     "Fantôme de Minimino": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -96026,11 +96239,17 @@
     "Farine d'Avoine": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Avoine"
+        ],
+        "ingredient_ids": [
+            533
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Peluche du Mulou": {
         "category": "ressources",
@@ -96115,7 +96334,7 @@
     },
     "Rune Pa Ré Pa": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -96191,11 +96410,17 @@
     "Raie bleue vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Raie Bleue"
+        ],
+        "ingredient_ids": [
+            1784
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Plume de fesse du Kido": {
         "category": "ressources",
@@ -96241,7 +96466,7 @@
     },
     "Rune Pa Do Pou": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -96359,11 +96584,17 @@
     "Poisskaille vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Poisskaille"
+        ],
+        "ingredient_ids": [
+            11106
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Oreille de Kanigrou": {
         "category": "ressources",
@@ -96403,7 +96634,7 @@
     },
     "Fantôme du Vilain Petit Corbac": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -96493,7 +96724,7 @@
     },
     "Fantôme de Platypus": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -96676,7 +96907,7 @@
     },
     "Rune Pa Cha": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -96811,7 +97042,7 @@
     },
     "Rune Pa Ré Eau": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -96938,11 +97169,17 @@
     "Perche vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Perche"
+        ],
+        "ingredient_ids": [
+            1801
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Fantôme de Mécaphor": {
         "category": "ressources",
@@ -97027,7 +97264,7 @@
     },
     "Fantôme de Godron Brâkmarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -97495,7 +97732,7 @@
     },
     "Fantôme de Tifoux": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -97723,7 +97960,7 @@
     },
     "Fantôme de Godron Poisseux": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -97741,7 +97978,7 @@
     },
     "Fantôme de Kokiroule": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -97768,7 +98005,7 @@
     },
     "Fantôme de Moumoute": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -97912,7 +98149,7 @@
     },
     "Fantôme de La Chose": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -97966,7 +98203,7 @@
     },
     "Fantôme de Dragnir": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -98152,7 +98389,7 @@
     },
     "Rune Pa Ret Pa": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -98341,7 +98578,7 @@
     },
     "Rune Pa Do Feu": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -98593,7 +98830,7 @@
     },
     "Rune Ra Pod": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -98638,7 +98875,7 @@
     },
     "Rune Pa Ré Pme": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -98683,7 +98920,7 @@
     },
     "Fantôme de Noxine": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -98692,7 +98929,7 @@
     },
     "Fantôme de Bwak de Terre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -98843,11 +99080,17 @@
     "Sardine Sombre vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Sardine Sombre"
+        ],
+        "ingredient_ids": [
+            1807
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Farine Paysanne": {
         "category": "ressources",
@@ -98933,11 +99176,17 @@
     "Kralamoure vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Kralamoure"
+        ],
+        "ingredient_ids": [
+            600
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Emballage d'affection": {
         "category": "ressources",
@@ -99059,15 +99308,21 @@
     "Bar Rikain vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Bar Rikain"
+        ],
+        "ingredient_ids": [
+            1779
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Fantôme de Titard": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -99253,7 +99508,7 @@
     },
     "Rune Ra Cha": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -99457,7 +99712,7 @@
     },
     "Rune Pa Ine": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -99493,7 +99748,7 @@
     },
     "Fantôme de Bworky": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -99847,7 +100102,7 @@
     },
     "Fantôme de Chauffe-souris Délavée": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -100138,7 +100393,7 @@
     },
     "Rune Pa Ré Feu": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -100252,7 +100507,7 @@
     },
     "Fantôme de Willy le Relou": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -100333,7 +100588,7 @@
     },
     "Fantôme de Titcham": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -100484,11 +100739,17 @@
     "Farine de Seigle Magique": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Seigle Résistant"
+        ],
+        "ingredient_ids": [
+            2029
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Agathe": {
         "category": "ressources",
@@ -100600,7 +100861,7 @@
     },
     "Fantôme de Bulbisou": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -100618,7 +100879,7 @@
     },
     "Fantôme de Tofu Poisseux": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -100834,7 +101095,7 @@
     },
     "Rune Pa Ré Terre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101032,7 +101293,7 @@
     },
     "Fantôme de Bwak d'Eau": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101176,7 +101437,7 @@
     },
     "Fantôme de Godron Mesuré": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101230,7 +101491,7 @@
     },
     "Fantôme de Petit Chacha Blanc": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101314,7 +101575,7 @@
     },
     "Fantôme de Chienchien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101359,7 +101620,7 @@
     },
     "Fantôme de Bwak de Feu": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101413,7 +101674,7 @@
     },
     "Fantôme Chacha Angora": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101627,11 +101888,17 @@
     "Farine de Seigle": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Seigle"
+        ],
+        "ingredient_ids": [
+            532
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Trèfle à 5 feuilles": {
         "category": "ressources",
@@ -101653,7 +101920,7 @@
     },
     "Rune Pa Do Terre": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101689,7 +101956,7 @@
     },
     "Fantôme de Dragoune Rose": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101708,11 +101975,17 @@
     "Farine d'Orge en Sucre": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Orge en Sucre"
+        ],
+        "ingredient_ids": [
+            2032
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Essence de Skeunk": {
         "category": "ressources",
@@ -101782,7 +102055,7 @@
     },
     "Fantôme de Chaperlipopette": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101818,7 +102091,7 @@
     },
     "Fantôme de Brâkarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101896,7 +102169,7 @@
     },
     "Fantôme de Boune Ventru": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -101906,11 +102179,17 @@
     "Farine de Frostiz": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Frostiz"
+        ],
+        "ingredient_ids": [
+            11109
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Tourbe séchée de Tourbassingue": {
         "category": "ressources",
@@ -101977,7 +102256,7 @@
     },
     "Fantôme de Gwo Tofu Ventripotent": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -102106,7 +102385,7 @@
     },
     "Fantôme de Givrefoux": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -102259,7 +102538,7 @@
     },
     "Rune Pa Ret Pme": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -102277,7 +102556,7 @@
     },
     "Fantôme de Godron Ventru": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -102385,7 +102664,7 @@
     },
     "Fantôme de Tofu Charmant": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -102413,11 +102692,17 @@
     "Farine de Lin": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Lin"
+        ],
+        "ingredient_ids": [
+            423
+        ],
+        "quantities": [
+            2
+        ]
     },
     "Jus de Ouassingue": {
         "category": "ressources",
@@ -102793,7 +103078,7 @@
     },
     "Rune Ra Pui": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103072,7 +103357,7 @@
     },
     "Fantôme de Kouin-Kouin": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103082,11 +103367,17 @@
     "Farine de Blé Magique": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Blé d'Or"
+        ],
+        "ingredient_ids": [
+            2018
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Pyrute": {
         "category": "ressources",
@@ -103159,7 +103450,7 @@
     },
     "Fantôme de Pioute Vert": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103186,7 +103477,7 @@
     },
     "Fantôme de Boune Charmant": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103228,7 +103519,7 @@
     },
     "Fantôme de Chacha Brakmarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103255,7 +103546,7 @@
     },
     "Fantôme de Croum": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103274,11 +103565,17 @@
     "Graine de Lin": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Paysan",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Fleur de Lin"
+        ],
+        "ingredient_ids": [
+            421
+        ],
+        "quantities": [
+            5
+        ]
     },
     "Clef du Laboratoire de Brumen Tinctorias": {
         "category": "ressources",
@@ -103426,7 +103723,7 @@
     },
     "Fantôme Miniminotot": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103558,7 +103855,7 @@
     },
     "Fantôme de Serpiplume apprivoisé": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103618,7 +103915,7 @@
     },
     "Fantôme de Raknaille": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103627,7 +103924,7 @@
     },
     "Fantôme Bébé Pandawa": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103691,15 +103988,21 @@
     "Requin marteau-faucille vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Requin Marteau-Faucille"
+        ],
+        "ingredient_ids": [
+            602
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Fantôme d'Ecureuil Chenapan": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103789,7 +104092,7 @@
     },
     "Fantôme de Bontique": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103798,7 +104101,7 @@
     },
     "Fantôme Dragoune Noire": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103924,7 +104227,7 @@
     },
     "Fantôme de Tatouf": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -103960,7 +104263,7 @@
     },
     "Fantôme de Pioute Jaune": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104071,7 +104374,7 @@
     },
     "Fantôme de Ploup": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104140,7 +104443,7 @@
     },
     "Fantôme de Boune Poisseux": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104194,7 +104497,7 @@
     },
     "Fantôme de Pholaine": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104294,11 +104597,17 @@
     "Goujon vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Goujon"
+        ],
+        "ingredient_ids": [
+            1782
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Perruque du Kimbo": {
         "category": "ressources",
@@ -104527,7 +104836,7 @@
     },
     "Rune Pa Do Air": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104608,7 +104917,7 @@
     },
     "Fantôme d'Abra Kadabra": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104749,7 +105058,7 @@
     },
     "Fantôme de Wabbit": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104875,7 +105184,7 @@
     },
     "Fantôme de Meuch": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104920,7 +105229,7 @@
     },
     "Fantôme de Dragouf": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104929,7 +105238,7 @@
     },
     "Fantôme de Boune Brakmarien": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -104966,11 +105275,17 @@
     "Carpette des sables vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Carpette des sables"
+        ],
+        "ingredient_ids": [
+            1796
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Clef du Laboratoire de Nileza": {
         "category": "ressources",
@@ -105019,7 +105334,7 @@
     },
     "Fantôme de Bwak d'Air": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -105106,7 +105421,7 @@
     },
     "Fantôme de Dragouf Noir": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -105269,11 +105584,17 @@
     "Requin marché-libre vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Requin Marché-Libre"
+        ],
+        "ingredient_ids": [
+            1853
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Essence de Craqueleur Légendaire": {
         "category": "ressources",
@@ -105355,7 +105676,7 @@
     },
     "Fantôme Bouloute du Parrain": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -105599,11 +105920,17 @@
     "Crabe Sourimi vidé": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Crabe Sourimi"
+        ],
+        "ingredient_ids": [
+            1757
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Etoffe de Firefoux": {
         "category": "ressources",
@@ -105859,7 +106186,7 @@
     },
     "Fantôme de Chacha Charmant": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -105896,15 +106223,21 @@
     "Farine de Houblon Magique": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Boulanger",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Houblon Brillant"
+        ],
+        "ingredient_ids": [
+            2021
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Fantôme de Léopardo": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106072,7 +106405,7 @@
     },
     "Fantôme de Chacha des Glaces": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106199,11 +106532,17 @@
     "Carpe d'Iem vidée": {
         "category": "ressources",
         "has_recipe": true,
-        "job": null,
-        "job_level": null,
-        "ingredient_names": [],
-        "ingredient_ids": [],
-        "quantities": []
+        "job": "Pêcheur",
+        "job_level": 1.0,
+        "ingredient_names": [
+            "Carpe d'Iem"
+        ],
+        "ingredient_ids": [
+            1794
+        ],
+        "quantities": [
+            1
+        ]
     },
     "Pierre Noire de Vulkania": {
         "category": "ressources",
@@ -106264,7 +106603,7 @@
     },
     "Fantôme de Mandrog": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106453,7 +106792,7 @@
     },
     "Fantôme de Tofureur": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106525,7 +106864,7 @@
     },
     "Fantôme de Blérodoudou": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106534,7 +106873,7 @@
     },
     "Rune Pa Do Cri": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106648,7 +106987,7 @@
     },
     "Fantôme de Kouin-Kouin amélioré": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106717,7 +107056,7 @@
     },
     "Fantôme de Chacha": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106735,7 +107074,7 @@
     },
     "Fantôme de Pioute Bleu": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
@@ -106801,7 +107140,7 @@
     },
     "Fantôme de Surime": {
         "category": "ressources",
-        "has_recipe": true,
+        "has_recipe": false,
         "job": null,
         "job_level": null,
         "ingredient_names": [],
