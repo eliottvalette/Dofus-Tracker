@@ -78,6 +78,7 @@ export default function DailyPlanPage() {
   const [craftRecipes, setCraftRecipes] = useState<Record<string, CraftRecipe>>({});
   const [dailyPlan, setDailyPlan] = useState<DailyPlanItem[]>([]);
   const [resourceRequirements, setResourceRequirements] = useState<ResourceRequirement[]>([]);
+  const [localResourceQuantities, setLocalResourceQuantities] = useState<Record<string, number>>({});
   const [selectedLotSize, setSelectedLotSize] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
@@ -569,6 +570,22 @@ export default function DailyPlanPage() {
     });
   };
 
+  // Mettre à jour la quantité locale d'une ressource
+  const updateLocalResourceQuantity = (resourceId: string, newQuantity: number) => {
+    if (newQuantity < 0) return;
+    
+    setLocalResourceQuantities(prev => ({
+      ...prev,
+      [resourceId]: newQuantity
+    }));
+  };
+
+  // Obtenir la quantité finale d'une ressource (quantité nécessaire - stock local)
+  const getFinalResourceQuantity = (resourceId: string, baseQuantity: number) => {
+    const localQuantity = localResourceQuantities[resourceId] || 0;
+    return Math.max(0, baseQuantity - localQuantity);
+  };
+
   return (
     <div className="min-h-screen p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -860,9 +877,6 @@ export default function DailyPlanPage() {
                             <div className="font-medium">
                               {planItem.dailyQuantity} items
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              Total cumulé
-                            </div>
                           </div>
                           
                           <Button
@@ -934,9 +948,35 @@ export default function DailyPlanPage() {
                         </div>
                         <div className="flex-1 min-w-0 mt-2">
                           <h3 className="font-medium break-words">{resource.name}</h3>
-                          <div className="text-lg font-bold mt-1 text-primary text-right">
-                            {resource.totalQuantity.toLocaleString()}
+                          <div className="flex items-center gap-2 mt-2">
+                            <div className="text-sm text-muted-foreground">Stock local:</div>
+                            <Input
+                              type="number"
+                              min="0"
+                              value={localResourceQuantities[resource.id] || ''}
+                              onChange={(e) => {
+                                const inputValue = e.target.value;
+                                if (inputValue === '') {
+                                  updateLocalResourceQuantity(resource.id, 0);
+                                  return;
+                                }
+                                const newValue = parseInt(inputValue);
+                                if (!isNaN(newValue) && newValue >= 0) {
+                                  updateLocalResourceQuantity(resource.id, newValue);
+                                }
+                              }}
+                              className="w-20 text-center text-xs"
+                              placeholder="0"
+                            />
                           </div>
+                          <div className="text-lg font-bold mt-1 text-primary text-right">
+                            {getFinalResourceQuantity(resource.id, resource.totalQuantity).toLocaleString()}
+                          </div>
+                          {localResourceQuantities[resource.id] > 0 && (
+                            <div className="text-xs text-muted-foreground text-right">
+                              -{localResourceQuantities[resource.id].toLocaleString()} du stock
+                            </div>
+                          )}
                         </div>
                         {resource.isCraftable && (
                           <Badge 
@@ -1073,13 +1113,16 @@ export default function DailyPlanPage() {
             resourceRequirements
               .filter(r => !r.isCraftable)
               .forEach(resource => {
-                allIngredients.set(resource.name, {
-                  name: resource.name,
-                  totalQuantity: resource.totalQuantity,
-                  image_url: resource.image_url,
-                  isCraftable: false,
-                  sources: resource.recipes.map(r => r.craftName)
-                });
+                const finalQuantity = getFinalResourceQuantity(resource.id, resource.totalQuantity);
+                if (finalQuantity > 0) {
+                  allIngredients.set(resource.name, {
+                    name: resource.name,
+                    totalQuantity: finalQuantity,
+                    image_url: resource.image_url,
+                    isCraftable: false,
+                    sources: resource.recipes.map(r => r.craftName)
+                  });
+                }
               });
 
             // Ajouter les ingrédients des chaînes de fabrication sélectionnées
@@ -1087,18 +1130,28 @@ export default function DailyPlanPage() {
               .filter(r => r.isCraftable && selectedResources.has(r.id) && r.ingredientChain)
               .forEach(resource => {
                 resource.ingredientChain!.forEach(ingredient => {
-                  if (allIngredients.has(ingredient.name)) {
-                    const existing = allIngredients.get(ingredient.name)!;
-                    existing.totalQuantity += ingredient.quantity;
-                    existing.sources.push(...resource.recipes.map(r => r.craftName));
-                  } else {
-                    allIngredients.set(ingredient.name, {
-                      name: ingredient.name,
-                      totalQuantity: ingredient.quantity,
-                      image_url: ingredient.image_url,
-                      isCraftable: ingredient.isCraftable,
-                      sources: resource.recipes.map(r => r.craftName)
-                    });
+                  // Chercher si cet ingrédient est déjà dans les ressources
+                  const existingResource = resourceRequirements.find(r => r.name === ingredient.name);
+                  let finalQuantity = ingredient.quantity;
+                  
+                  if (existingResource) {
+                    finalQuantity = getFinalResourceQuantity(existingResource.id, ingredient.quantity);
+                  }
+                  
+                  if (finalQuantity > 0) {
+                    if (allIngredients.has(ingredient.name)) {
+                      const existing = allIngredients.get(ingredient.name)!;
+                      existing.totalQuantity += finalQuantity;
+                      existing.sources.push(...resource.recipes.map(r => r.craftName));
+                    } else {
+                      allIngredients.set(ingredient.name, {
+                        name: ingredient.name,
+                        totalQuantity: finalQuantity,
+                        image_url: ingredient.image_url,
+                        isCraftable: ingredient.isCraftable,
+                        sources: resource.recipes.map(r => r.craftName)
+                      });
+                    }
                   }
                 });
               });
