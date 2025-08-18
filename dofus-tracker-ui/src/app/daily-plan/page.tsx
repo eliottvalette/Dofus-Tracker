@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, Package, Calculator, Trash2, Heart, HelpCircle, Search, Check } from "lucide-react";
+import { Calendar, Package, Calculator, Trash2, Heart, HelpCircle, Search, Check, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -60,6 +60,13 @@ interface ResourceRequirement {
     quantityNeeded: number;
     dailyProduction: number;
   }>;
+  isCraftable: boolean;
+  ingredientChain?: Array<{
+    name: string;
+    quantity: number;
+    image_url?: string;
+    isCraftable: boolean;
+  }>;
 }
 
 export default function DailyPlanPage() {
@@ -73,6 +80,9 @@ export default function DailyPlanPage() {
   const [resourceRequirements, setResourceRequirements] = useState<ResourceRequirement[]>([]);
   const [selectedLotSize, setSelectedLotSize] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
+  const [availableJobs, setAvailableJobs] = useState<string[]>([]);
+  const [selectedResources, setSelectedResources] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [itemsLoading, setItemsLoading] = useState(true);
   
@@ -108,6 +118,18 @@ export default function DailyPlanPage() {
       console.error('Erreur lors du chargement de tous les items:', error);
     }
   }, []);
+
+  // Extraire tous les métiers disponibles depuis les recettes de craft
+  const extractAvailableJobs = useCallback(() => {
+    const jobsSet = new Set<string>();
+    Object.values(craftRecipes).forEach(recipe => {
+      if (recipe.has_recipe && recipe.job) {
+        jobsSet.add(recipe.job);
+      }
+    });
+    const jobsArray = Array.from(jobsSet).sort();
+    setAvailableJobs(jobsArray);
+  }, [craftRecipes, selectedJobs.size]);
 
   // Charger les données de craft
   const loadCraftRecipes = useCallback(async () => {
@@ -259,11 +281,40 @@ export default function DailyPlanPage() {
           const resourceItem = allItemsComplete.find(item => item.nom === name);
           const imageUrl = resourceItem?.image_url;
 
+          // Vérifier si cette ressource est craftable
+          const isCraftable = craftRecipes[name]?.has_recipe || false;
+          
+          // Calculer la chaîne d'ingrédients si c'est craftable
+          let ingredientChain: Array<{
+            name: string;
+            quantity: number;
+            image_url?: string;
+            isCraftable: boolean;
+          }> = [];
+
+          if (isCraftable) {
+            const resourceRecipe = craftRecipes[name];
+            ingredientChain = resourceRecipe.ingredient_names.map((ingName, ingIndex) => {
+              const ingItem = allItemsComplete.find(item => item.nom === ingName);
+              const ingImageUrl = ingItem?.image_url;
+              const ingIsCraftable = craftRecipes[ingName]?.has_recipe || false;
+              
+              return {
+                name: ingName,
+                quantity: resourceRecipe.quantities[ingIndex] * totalQuantityNeeded,
+                image_url: ingImageUrl,
+                isCraftable: ingIsCraftable
+              };
+            });
+          }
+
           resourceMap.set(id.toString(), {
             id: id.toString(),
             name,
             totalQuantity: totalQuantityNeeded,
             image_url: imageUrl,
+            isCraftable,
+            ingredientChain,
             recipes: [{
               craftName: planItem.itemName,
               quantityNeeded: totalQuantityNeeded,
@@ -437,30 +488,83 @@ export default function DailyPlanPage() {
     loadDailyPlan();
   }, [loadDailyPlan]);
 
-  // Filtrer les items selon la recherche
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      // On ne garde que les items qui ont une recette de craft (donc un job associé)
-      setFilteredItems(allItems.filter(item => {
-        const recipe = craftRecipes[item.nom];
-        return recipe && recipe.has_recipe && recipe.job;
-      }));
-    } else {
-      const filtered = allItems.filter(item => {
-        const recipe = craftRecipes[item.nom];
-        return recipe && recipe.has_recipe && recipe.job && (
+    extractAvailableJobs();
+  }, [extractAvailableJobs]);
+
+  // Filtrer les items selon la recherche et les métiers sélectionnés
+  useEffect(() => {
+    if (searchTerm.trim() === "" && selectedJobs.size === 0) {
+      // Si aucun filtre n'est appliqué, ne rien afficher
+      setFilteredItems([]);
+      return;
+    }
+
+    const filtered = allItems.filter(item => {
+      const recipe = craftRecipes[item.nom];
+      if (!recipe || !recipe.has_recipe || !recipe.job) {
+        return false;
+      }
+
+      // Vérifier que le métier de l'item est dans la sélection
+      if (selectedJobs.size > 0 && !selectedJobs.has(recipe.job)) {
+        return false;
+      }
+
+      // Vérifier le terme de recherche
+      if (searchTerm.trim() !== "") {
+        return (
           item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
           item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
           item.category.toLowerCase().includes(searchTerm.toLowerCase())
         );
-      });
-      setFilteredItems(filtered);
-    }
-  }, [allItems, searchTerm, craftRecipes]);
+      }
+
+      return true;
+    });
+    
+    setFilteredItems(filtered);
+  }, [allItems, searchTerm, craftRecipes, selectedJobs]);
 
   useEffect(() => {
     calculateResourceRequirements();
   }, [calculateResourceRequirements]);
+
+  // Toggle la sélection d'un métier
+  const toggleJobSelection = (job: string) => {
+    setSelectedJobs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(job)) {
+        newSet.delete(job);
+      } else {
+        newSet.add(job);
+      }
+      return newSet;
+    });
+  };
+
+  // Sélectionner tous les métiers
+  const selectAllJobs = () => {
+    setSelectedJobs(new Set(availableJobs));
+  };
+
+  // Désélectionner tous les métiers
+  const deselectAllJobs = () => {
+    setSelectedJobs(new Set());
+  };
+
+  // Toggle la sélection d'une ressource
+  const toggleResourceSelection = (resourceId: string) => {
+    setSelectedResources(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(resourceId)) {
+        newSet.delete(resourceId);
+      } else {
+        newSet.add(resourceId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <div className="min-h-screen p-6 space-y-6">
@@ -507,6 +611,44 @@ export default function DailyPlanPage() {
               />
             </div>
             
+            {/* Filtre par métier */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">Filtrer par métier</label>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={selectAllJobs}
+                    className="text-xs"
+                  >
+                    Tout sélectionner
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={deselectAllJobs}
+                    className="text-xs"
+                  >
+                    Tout désélectionner
+                  </Button>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableJobs.map((job) => (
+                  <Button
+                    key={job}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleJobSelection(job)}
+                    className={`text-xs ${selectedJobs.has(job) ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:text-secondary-foreground"}`}
+                  >
+                    {job}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
             {/* Sélecteur de taille de lot pour faciliter l'ajout */}
             <div>
               <label className="text-sm font-medium mb-2 block">Quantité à ajouter</label>
@@ -534,22 +676,25 @@ export default function DailyPlanPage() {
             <div className="text-center py-8">
               <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                {searchTerm.trim() !== "" 
-                  ? `Aucun favori trouvé pour "${searchTerm}". Essayez un autre terme de recherche.`
+                {searchTerm.trim() !== "" || selectedJobs.size > 0
+                  ? `Aucun favori trouvé pour les critères sélectionnés.`
                   : "Aucun favori trouvé"
                 }
               </p>
               <p className="text-sm text-muted-foreground mt-2">
-                Allez dans la page &quot;Items&quot; pour ajouter des favoris
+                {selectedJobs.size === 0 
+                  ? "Sélectionnez au moins un métier pour voir les items craftables"
+                  : "Essayez de modifier vos filtres ou ajoutez des favoris dans la page \"Items\""
+                }
               </p>
             </div>
           ) : (
-            <ScrollArea className="h-[500px]">
+            <ScrollArea className="h-[330px]">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredItems.slice(0, 200).map((item, index) => (
                   <Card 
                     key={index} 
-                    className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer h-25 py-0 justify-center relative"
+                    className="hover:shadow-lg hover:bg-secondary transition-all cursor-pointer h-35 py-0 justify-center relative"
                     onClick={(e) => addToDailyPlan(item, e)}
                   >
                     <CardContent className="px-4 select-none">
@@ -733,7 +878,15 @@ export default function DailyPlanPage() {
             <ScrollArea className="h-[400px]">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {resourceRequirements.map((resource) => (
-                  <Card key={resource.id} className="hover:shadow-lg hover:bg-secondary transition-all h-25 py-0 justify-center relative">
+                  <Card 
+                    key={resource.id} 
+                    className={`hover:shadow-lg hover:bg-secondary transition-all h-25 py-0 justify-center relative ${
+                      resource.isCraftable ? 'cursor-pointer' : 'cursor-default'
+                    } ${
+                      selectedResources.has(resource.id) ? 'border-primary' : ''
+                    }`}
+                    onClick={resource.isCraftable ? () => toggleResourceSelection(resource.id) : undefined}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
@@ -758,6 +911,14 @@ export default function DailyPlanPage() {
                           <div className="text-lg font-bold mt-2 text-primary">
                             {resource.totalQuantity.toLocaleString()}
                           </div>
+                          {resource.isCraftable && (
+                            <Badge 
+                              variant={selectedResources.has(resource.id) ? "default" : "secondary"} 
+                              className="text-xs mt-1"
+                            >
+                              {selectedResources.has(resource.id) ? "À fabriquer" : "Craftable"}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -766,6 +927,215 @@ export default function DailyPlanPage() {
               </div>
             </ScrollArea>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Carte Chaînes de Fabrication - Chaînes de craft */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Chaînes de Fabrication
+          </CardTitle>
+          <CardDescription>
+            Détail des ingrédients nécessaires pour fabriquer les ressources sélectionnées
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {resourceRequirements.filter(r => r.isCraftable && r.ingredientChain && r.ingredientChain.length > 0 && selectedResources.has(r.id)).length === 0 ? (
+            <div className="text-center py-8">
+              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Aucune chaîne de fabrication à afficher</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Sélectionnez des ressources craftables dans la section &quot;Ressources Nécessaires&quot;
+              </p>
+            </div>
+          ) : (
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-4">
+                {resourceRequirements
+                  .filter(r => r.isCraftable && r.ingredientChain && r.ingredientChain.length > 0 && selectedResources.has(r.id))
+                  .map((resource) => (
+                    <Card key={`super-${resource.id}`} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="mb-3">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                              {resource.image_url ? (
+                                <img 
+                                  src={resource.image_url} 
+                                  alt={resource.name}
+                                  className="w-8 h-8 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-8 h-8 bg-muted-foreground/20 rounded" />
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="font-medium">{resource.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {resource.totalQuantity.toLocaleString()} items nécessaires
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-muted-foreground">Ingrédients à collecter :</p>
+                          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                            {resource.ingredientChain!.map((ingredient, index) => (
+                              <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                                  {ingredient.image_url ? (
+                                    <img 
+                                      src={ingredient.image_url} 
+                                      alt={ingredient.name}
+                                      className="w-6 h-6 object-contain"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-6 h-6 bg-muted-foreground/20 rounded" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{ingredient.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {ingredient.quantity.toLocaleString()} items
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Carte Bilan des courses - Tous les ingrédients nécessaires */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5" />
+            Bilan des Courses
+          </CardTitle>
+          <CardDescription>
+            Liste complète de tous les ingrédients à collecter : ressources non craftables + ingrédients des chaînes de fabrication
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {(() => {
+            // Collecter tous les ingrédients uniques
+            const allIngredients = new Map<string, {
+              name: string;
+              totalQuantity: number;
+              image_url?: string;
+              isCraftable: boolean;
+              sources: string[];
+            }>();
+
+            // Ajouter les ressources non craftables
+            resourceRequirements
+              .filter(r => !r.isCraftable)
+              .forEach(resource => {
+                allIngredients.set(resource.name, {
+                  name: resource.name,
+                  totalQuantity: resource.totalQuantity,
+                  image_url: resource.image_url,
+                  isCraftable: false,
+                  sources: resource.recipes.map(r => r.craftName)
+                });
+              });
+
+            // Ajouter les ingrédients des chaînes de fabrication sélectionnées
+            resourceRequirements
+              .filter(r => r.isCraftable && selectedResources.has(r.id) && r.ingredientChain)
+              .forEach(resource => {
+                resource.ingredientChain!.forEach(ingredient => {
+                  if (allIngredients.has(ingredient.name)) {
+                    const existing = allIngredients.get(ingredient.name)!;
+                    existing.totalQuantity += ingredient.quantity;
+                    existing.sources.push(...resource.recipes.map(r => r.craftName));
+                  } else {
+                    allIngredients.set(ingredient.name, {
+                      name: ingredient.name,
+                      totalQuantity: ingredient.quantity,
+                      image_url: ingredient.image_url,
+                      isCraftable: ingredient.isCraftable,
+                      sources: resource.recipes.map(r => r.craftName)
+                    });
+                  }
+                });
+              });
+
+            // Ajouter les ressources craftables non sélectionnées (comme la Levure de Boulanger)
+            resourceRequirements
+              .filter(r => r.isCraftable && !selectedResources.has(r.id))
+              .forEach(resource => {
+                allIngredients.set(resource.name, {
+                  name: resource.name,
+                  totalQuantity: resource.totalQuantity,
+                  image_url: resource.image_url,
+                  isCraftable: true,
+                  sources: resource.recipes.map(r => r.craftName)
+                });
+              });
+
+            const ingredientsList = Array.from(allIngredients.values())
+              .sort((a, b) => b.totalQuantity - a.totalQuantity);
+
+            return ingredientsList.length === 0 ? (
+              <div className="text-center py-8">
+                <Calculator className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Aucun ingrédient à collecter</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Ajoutez des items à votre plan journalier
+                </p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[400px]">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {ingredientsList.map((ingredient, index) => (
+                    <Card key={index} className="hover:shadow-lg hover:bg-secondary transition-all h-25 py-0 justify-center relative">
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border border-popover-foreground">
+                            {ingredient.image_url ? (
+                              <img 
+                                src={ingredient.image_url} 
+                                alt={ingredient.name}
+                                className="w-10 h-10 object-contain"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 bg-muted-foreground/20 rounded" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium truncate">{ingredient.name}</h3>
+                            <div className="text-lg font-bold mt-2 text-primary">
+                              {ingredient.totalQuantity.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            );
+          })()}
         </CardContent>
       </Card>
 
