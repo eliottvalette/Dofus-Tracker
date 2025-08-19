@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Dofus Tracker",
-  description: "Traque tes ventes et tes meilleurs affaires dans l'HDV Dofus",
+  description: "Garde une trace de tes ventes, obtient des stats détaillées sur tes meilleures affaires, planifie tes crafts ainsi que les ressources à récolter. 100% gratuit.",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
