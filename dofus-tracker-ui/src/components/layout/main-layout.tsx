@@ -214,6 +214,10 @@ export function MainLayout({ children }: MainLayoutProps) {
                   
                   {/* User Menu */}
                   <UserMenu />
+                  {/* Non-affiliation notice at the bottom of the mobile menu */}
+                  <div className="p-4 pt-2 text-xs text-muted-foreground">
+                    Ce site n&apos;est pas un site officiel d&apos;ANKAMA et n&apos;est pas affilié à ANKAMA.
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -248,6 +252,10 @@ export function MainLayout({ children }: MainLayoutProps) {
             
             {/* User Menu */}
             <UserMenu />
+            {/* Non-affiliation notice at the bottom of the sidebar */}
+            <div className="p-4 pt-1 text-xs text-muted-foreground mt-auto text-center">
+              Ce site n&apos;est pas un site officiel d&apos;ANKAMA et n&apos;est pas affilié à ANKAMA.
+            </div>
           </div>
         </aside>
 
