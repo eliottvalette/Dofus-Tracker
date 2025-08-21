@@ -631,10 +631,13 @@ export default function DailyPlanPage() {
             Planifiez votre production quotidienne et calculez les ressources nécessaires
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setHelpDialogOpen(true)}>
-          <HelpCircle className="h-4 w-4 mr-2" />
-          Aide
-        </Button>
+        <button
+              onClick={() => setHelpDialogOpen(true)}
+              className="h-16 w-16 p-0 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
+              title="Aide"
+            >
+              <HelpCircle className="h-8 w-8 bg-primary text-primary-foreground rounded-full" />
+            </button>
       </div>
 
       {/* Carte des items favoris craftables */}

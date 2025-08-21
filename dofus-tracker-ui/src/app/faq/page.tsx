@@ -6,29 +6,40 @@ import { HelpCircle } from "lucide-react";
 const Q_n_A = [
   {
     question: "Pourquoi il n'y a pas le prix des items ?",
-    answer: "Le prix des items récupéré automatiquement nécessiterait un bot HDV, ce qui est formellement interdit par la communauté et par Ankama. Cependant, prochainement, il vous sera possible de mettre à jour le prix des items manuellement. Il sera également possible de partager les prix entre utilisateurs pour créer une base de données collaborative."
+    answer:
+      "La récupération automatique des prix nécessiterait un bot HDV (interdit par la communauté et par Ankama). En revanche, vous pouvez déjà définir des prix manuels: dans la page Ventes via des badges de prix, et dans le Plan Journalier via des badges de prix unitaires par ingrédient.",
   },
   {
     question: "Comment annuler une vente ?",
-    answer: "Faites un clic droit sur une vente en cours et sélectionnez \"Annuler la vente\". La vente sera supprimée définitivement de votre liste."
+    answer:
+      "Faites un clic droit sur une vente en cours et sélectionnez \"Annuler la vente\". La vente sera supprimée de votre liste de ventes en cours. Disponible uniquement sur ordinateur, je réfléchis à une solution pour mobile.",
   },
   {
-    question: "Dofus Tracker est-il gratuit ?",
-    answer: "Oui, Dofus Tracker est entièrement gratuit. Aucun abonnement ou paiement n'est requis pour utiliser toutes les fonctionnalités."
+    question: "Qu'est-ce que le mode invité ?",
+    answer:
+      "Le mode invité permet de tester l'application sans compte avec des données de démonstration (favoris, ventes, statistiques). Les actions d'écriture (favoris personnalisés, ventes, plan journalier) nécessitent un compte pour être sauvegardées et synchronisées.",
   },
   {
     question: "Mes données sont-elles sauvegardées ?",
-    answer: "Oui, vos favoris et vos ventes sont sauvegardées automatiquement et instantanément dans Firebase et synchronisés entre tous vos appareils une fois que vous êtes connecté avec votre compte."
+    answer:
+      "Oui. Une fois connecté, vos favoris, ventes et plan journalier sont sauvegardés dans Firebase et synchronisés entre vos appareils.",
   },
   {
     question: "L'application fonctionne-t-elle sur mobile ?",
-    answer: "Oui, Dofus Tracker est responsive et fonctionne parfaitement sur mobile. L'interface s'adapte automatiquement à la taille de votre écran."
+    answer:
+      "Oui, l'interface est responsive et s'adapte automatiquement aux écrans mobiles.",
   },
   {
     question: "Y a-t-il des limites d'utilisation ?",
-    answer: "Il n'y a pas, et il n'y aura jamais de limite sur le nombre d'items favoris ou de ventes que vous pouvez créer."
-  }
-]
+    answer:
+      "Aucune limite volontaire sur le nombre de favoris, ventes ou éléments du plan journalier. Des limites techniques raisonnables peuvent s'appliquer pour préserver les performances.",
+  },
+  {
+    question: "Comment proposer une amélioration ou signaler un bug ?",
+    answer:
+      "Rendez-vous sur la page Communauté pour envoyer votre suggestion, ou écrivez à dofus.tracker.contact@gmail.com.",
+  },
+];
 
 
 export default function FAQPage() {
@@ -45,7 +56,7 @@ export default function FAQPage() {
             <CardHeader>
               <CardTitle className="text-lg">{item.question}</CardTitle>
           </CardHeader>
-          <div className="w-full h-px bg-border mx-6"></div>
+          <div className="h-px bg-border mx-6"></div>
           <CardContent className="pt-2">
             <p className="text-muted-foreground">
               {item.answer}
