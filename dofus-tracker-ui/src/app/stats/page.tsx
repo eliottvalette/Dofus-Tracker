@@ -295,7 +295,7 @@ export default function StatsPage() {
           const diffHours = Math.floor((now.getTime() - saleDate.getTime()) / (1000 * 60 * 60));
           
           let timeString = "";
-          if (diffHours < 1) timeString = "À l&apos;instant";
+          if (diffHours < 1) timeString = "À l'instant";
           else if (diffHours < 24) timeString = `Il y a ${diffHours}h`;
           else {
             const diffDays = Math.floor(diffHours / 24);
