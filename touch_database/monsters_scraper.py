@@ -16,6 +16,7 @@ BASE_URL = "https://www.dofus-touch.com"
 ROOT_DIR = Path(__file__).resolve().parent
 HTML_DIR = ROOT_DIR / "html" / "monstres"
 DEEP_HTML_DIR = ROOT_DIR / "deep_html" / "monstres"
+ITEMS_HTML_DIR = ROOT_DIR / "deep_html" / "items"
 DATA_DIR = ROOT_DIR / "data"
 JSON_DIR = DATA_DIR / "json"
 
@@ -231,6 +232,59 @@ def fetch_monster_page_if_missing(
     return html_content
 
 
+def fetch_item_condition(
+    item_url: str,
+    retries: int = 1,
+    request_delay: float = DEFAULT_DETAIL_DELAY,
+    cache_only: bool = False,
+) -> str | None:
+    if not item_url:
+        return None
+    ITEMS_HTML_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        item_id, item_slug = split_id_slug(item_url)
+    except ValueError:
+        return None
+    
+    filename = ITEMS_HTML_DIR / f"{item_id}_{item_slug}.html"
+    
+    if filename.exists():
+        html_content = filename.read_text(encoding="utf-8")
+    elif cache_only:
+        return None
+    else:
+        time.sleep(request_delay + random.uniform(0, request_delay * 0.35))
+        print(f"📥 Téléchargement item condition: {item_url}")
+        try:
+            html_content = request_html(item_url, retries=retries)
+            filename.write_text(html_content, encoding="utf-8")
+        except RateLimitedError:
+            raise
+        except Exception as exc:
+            print(f"❌ Erreur sur l'item {item_url}: {exc}")
+            return None
+            
+    soup = BeautifulSoup(html_content, "html.parser")
+    for panel in soup.find_all(lambda tag: tag.name == "div" and has_css_class(tag, "ak-panel")):
+        title = panel.find("div", class_="ak-panel-title")
+        if title and "Description" in title.get_text():
+            content = panel.find("div", class_="ak-panel-content")
+            if content:
+                desc = clean_text(content.get_text(" ", strip=True))
+                match = re.search(r"\(([^)]+)\)$", desc)
+                if match:
+                    cond = match.group(1).strip()
+                    lower_cond = cond.lower()
+                    if lower_cond.startswith("+") or lower_cond.startswith("-") or lower_cond.replace(' ', '').isdigit():
+                        return None
+                    if "apparat" in lower_cond or "apparence" in lower_cond:
+                        return None
+                    if "existe aussi" in lower_cond or "jeter la clef" in lower_cond or "sous-zone :" in lower_cond:
+                        return None
+                    return cond
+    return None
+
+
 def extract_monster_urls_from_html(html_content: str) -> list[dict]:
     soup = BeautifulSoup(html_content, "html.parser")
     monsters = []
@@ -408,7 +462,7 @@ def extract_zones(soup: BeautifulSoup) -> list[str]:
     return unique_zones
 
 
-def extract_drops_from_panel(panel, drop_kind: str) -> list[dict]:
+def extract_drops_from_panel(panel, drop_kind: str, fetch_condition_fn=None) -> list[dict]:
     drops = []
     list_elements = panel.find_all(lambda tag: tag.name == "div" and has_css_class(tag, "ak-list-element"))
     for element in list_elements:
@@ -434,6 +488,8 @@ def extract_drops_from_panel(panel, drop_kind: str) -> list[dict]:
         if drop_kind == "conditioned":
             candidates = [front_text, *text_elements]
             condition = " | ".join(candidate for candidate in candidates if candidate and "%" not in candidate)
+            if fetch_condition_fn and not condition:
+                condition = fetch_condition_fn(item.get("url")) or ""
 
         drops.append(
             {
@@ -454,16 +510,16 @@ def extract_drops_from_panel(panel, drop_kind: str) -> list[dict]:
     return drops
 
 
-def extract_drops(soup: BeautifulSoup) -> dict:
+def extract_drops(soup: BeautifulSoup, fetch_condition_fn=None) -> dict:
     normal_drops = []
     conditioned_drops = []
 
     for panel in find_panels(soup, r"butin|drop"):
         title = normalize_label(panel_title(panel))
         if "condition" in title:
-            conditioned_drops.extend(extract_drops_from_panel(panel, "conditioned"))
+            conditioned_drops.extend(extract_drops_from_panel(panel, "conditioned", fetch_condition_fn=fetch_condition_fn))
         else:
-            normal_drops.extend(extract_drops_from_panel(panel, "normal"))
+            normal_drops.extend(extract_drops_from_panel(panel, "normal", fetch_condition_fn=fetch_condition_fn))
 
     return {
         "drops": normal_drops,
@@ -471,12 +527,12 @@ def extract_drops(soup: BeautifulSoup) -> dict:
     }
 
 
-def extract_monster_details(html_content: str, source_url: str | None = None) -> dict:
+def extract_monster_details(html_content: str, source_url: str | None = None, fetch_condition_fn=None) -> dict:
     soup = BeautifulSoup(html_content, "html.parser")
     basics = extract_monster_basics(soup)
     stats = extract_stats(soup)
     zones = extract_zones(soup)
-    drops = extract_drops(soup)
+    drops = extract_drops(soup, fetch_condition_fn=fetch_condition_fn)
 
     monster_id = None
     monster_slug = None
@@ -675,7 +731,16 @@ def scrape_monsters(
                 break
             continue
         consecutive_failures = 0
-        monster = extract_monster_details(html_content, source["url"])
+        
+        def fetch_condition(item_url: str) -> str | None:
+            return fetch_item_condition(
+                item_url,
+                retries=detail_retries,
+                request_delay=detail_delay,
+                cache_only=cache_only,
+            )
+            
+        monster = extract_monster_details(html_content, source["url"], fetch_condition_fn=fetch_condition)
         monster["monster_id"] = source["monster_id"]
         monster["monster_slug"] = source["monster_slug"]
         monsters.append(monster)
